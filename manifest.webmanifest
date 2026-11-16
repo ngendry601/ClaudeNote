@@ -1,0 +1,14 @@
+{
+  "name": "ClaudeNote — cours, flashcards & veille",
+  "short_name": "ClaudeNote",
+  "description": "Tes cours, tes flashcards et ta veille techno au même endroit.",
+  "start_url": "./#/",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "lang": "fr",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>ClaudeNote</title>
+    <meta name="description" content="Tes cours, tes flashcards et ta veille techno au même endroit." />
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <a href="#/" class="logo"><img src="icon.svg" alt="" width="32" height="32" /><span>ClaudeNote</span></a>
+        <nav class="nav" id="nav"></nav>
+        <a href="#/pomodoro" class="mini-timer" id="mini-timer" hidden></a>
+      </aside>
+      <main class="main">
+        <header class="topbar">
+          <label class="global-search"><span id="search-ic"></span><input id="search" type="search" placeholder="Rechercher dans les cours, cartes, actus…  ( / )" autocomplete="off" /></label>
+        </header>
+        <div id="view" class="view"></div>
+      </main>
+    </div>
+    <div id="modal-root"></div>
+    <div id="toast-root"></div>
+    <noscript>ClaudeNote a besoin de JavaScript.</noscript>
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
