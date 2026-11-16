@@ -141,7 +141,13 @@ function generateModal(course, onDone) {
   if (!found.length) {
     openModal(`<h3>Aucune flashcard détectée</h3>
       <p>Écris tes cartes directement dans ton cours avec l'une de ces syntaxes :</p>
-      <pre><code>Question :: Réponse
+      <pre><code>::: Question (carte riche)
+- **mot-clé** : explication
+==l'essentiel surligné==
+!! piège à éviter
+:::
+
+Question :: Réponse
 Q : Question
 R : Réponse
 - **Terme** : définition</code></pre>
@@ -154,8 +160,8 @@ R : Réponse
      <ul class="gen-list">${found
        .map((c, i) => {
          const dup = existing.has(c.front.trim().toLowerCase());
-         return `<li class="${dup ? 'dup' : ''}"><label><input type="checkbox" data-i="${i}" ${dup ? '' : 'checked'}>
-           <div><b>${esc(c.front)}</b><span>${esc(c.back)}</span>${dup ? '<em>déjà dans le paquet</em>' : ''}</div></label></li>`;
+         return `<li class="${dup ? 'dup' : ''}" style="--fc:${c.color}"><label><input type="checkbox" data-i="${i}" ${dup ? '' : 'checked'}>
+           <div>${c.section ? `<small class="cl-sec">${esc(c.section)}${c.sub ? ' · ' + esc(c.sub) : ''}</small>` : ''}<b>${esc(c.front)}</b><span>${esc(stripMd(c.back)).slice(0, 160)}</span>${c.trap ? `<span class="gen-trap">⚠️ ${esc(c.trap)}</span>` : ''}${dup ? '<em>déjà dans le paquet — coche pour la mettre à jour</em>' : ''}</div></label></li>`;
        })
        .join('')}</ul>
      <div class="modal-actions"><button class="btn ghost" data-close>Annuler</button><button class="btn primary" data-go>Ajouter la sélection</button></div>`,
@@ -166,9 +172,21 @@ R : Réponse
           const picked = $$('input[data-i]:checked', m).map((i) => found[+i.dataset.i]);
           if (!picked.length) return close();
           const d = ensureDeckForCourse(course);
-          picked.forEach((c) => state.cards.push(newCard(d.id, c.front, c.back)));
+          let added = 0;
+          let updated = 0;
+          picked.forEach((c) => {
+            const extra = { trap: c.trap || '', section: c.section, sub: c.sub, color: c.color };
+            const ex = cardsOf(d.id).find((x) => x.front.trim().toLowerCase() === c.front.trim().toLowerCase());
+            if (ex) {
+              Object.assign(ex, { back: c.back, ...extra });
+              updated++;
+            } else {
+              state.cards.push(newCard(d.id, c.front, c.back, extra));
+              added++;
+            }
+          });
           save();
-          toast(`${picked.length} carte(s) ajoutée(s) ✨`, 'success');
+          toast(`${added} carte(s) ajoutée(s)${updated ? `, ${updated} mise(s) à jour` : ''} ✨`, 'success');
           close();
           onDone?.();
         };
@@ -231,7 +249,7 @@ export function courseView(el, { params: [id] }) {
         <div><code># Titre</code>, <code>## Sous-titre</code></div><div><code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code></div>
         <div><code>- liste</code>, <code>1. liste</code>, <code>- [ ] tâche</code></div><div><code>\`code\`</code> et blocs <code>\`\`\`</code></div>
         <div><code>| a | b |</code> tableaux</div><div><code>&gt; citation</code>, <code>[lien](https://…)</code></div>
-        <div><b>Flashcard :</b> <code>Question :: Réponse</code></div><div><b>Ou :</b> <code>Q : …</code> puis <code>R : …</code>, ou <code>- **Terme** : déf</code></div>
+        <div><b>Carte riche :</b> <code>::: Question</code> … <code>!! piège</code> … <code>:::</code></div><div><b>Flashcard simple :</b> <code>Question :: Réponse</code></div><div><b>Ou :</b> <code>Q : …</code> puis <code>R : …</code>, ou <code>- **Terme** : déf</code></div>
       </div></details>`;
 
   const editor = $('[data-editor]', el);

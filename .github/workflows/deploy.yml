@@ -1,0 +1,58 @@
+name: Publier l'appli + veille
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *' # flux de veille + notifications push environ toutes les 30 min
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # On ne publie que la branche par défaut (les push sur d'autres branches sont ignorés)
+    if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Installer les dépendances du robot
+        run: npm ci --prefix scripts
+
+      - name: Construire le site
+        run: |
+          mkdir -p _site
+          cp -r index.html manifest.webmanifest sw.js icon.svg icons css js data _site/
+          touch _site/.nojekyll
+
+      - name: Veille et notifications push
+        continue-on-error: true
+        env:
+          OUT_DIR: _site
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
+          PUSH_CONFIG: ${{ secrets.PUSH_CONFIG }}
+        run: node scripts/veille.mjs
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

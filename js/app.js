@@ -11,14 +11,17 @@ import newsView from './views/news.js';
 import pomodoroView from './views/pomodoro.js';
 import settingsView from './views/settings.js';
 import searchView from './views/search.js';
+import quizView from './views/quiz.js';
+import { importPack } from './packs.js';
 
 const NAV = [
   { href: '#/', label: 'Accueil', icon: 'home', match: /^\/$/ },
   { href: '#/cours', label: 'Cours', icon: 'book', match: /^\/cours/ },
   { href: '#/flashcards', label: 'Flashcards', icon: 'cards', match: /^\/(flashcards|reviser)/ },
+  { href: '#/quiz', label: 'Quiz', icon: 'quiz', match: /^\/quiz/ },
   { href: '#/veille', label: 'Veille', icon: 'bell', match: /^\/veille/, badge: true },
-  { href: '#/pomodoro', label: 'Pomodoro', icon: 'timer', match: /^\/pomodoro/ },
-  { href: '#/reglages', label: 'Réglages', icon: 'settings', match: /^\/reglages/ },
+  { href: '#/pomodoro', label: 'Pomodoro', icon: 'timer', match: /^\/pomodoro/, desktop: true },
+  { href: '#/reglages', label: 'Réglages', icon: 'settings', match: /^\/reglages/, desktop: true },
 ];
 
 const routes = [
@@ -32,6 +35,7 @@ const routes = [
   [/^\/pomodoro$/, pomodoroView],
   [/^\/reglages$/, settingsView],
   [/^\/recherche$/, searchView],
+  [/^\/quiz$/, quizView],
 ];
 
 const view = $('#view');
@@ -57,8 +61,9 @@ function render() {
   const h = location.hash.slice(1) || '/';
   const [path, qs] = h.split('?');
   const query = new URLSearchParams(qs || '');
-  $$('.nav a').forEach((a) => {
+  $$('.nav a, #top-links a').forEach((a) => {
     const item = NAV.find((n) => n.href === a.getAttribute('href'));
+    if (!item) return;
     a.classList.toggle('active', !!item?.match.test(path));
   });
   if (path !== '/recherche') $('#search').value = '';
@@ -77,9 +82,12 @@ function render() {
 
 function buildNav() {
   $('#nav').innerHTML = NAV.map(
-    (n) => `<a href="${n.href}" title="${n.label}">${icon(n.icon, 20)}<span>${n.label}</span>${n.badge ? '<b class="badge" data-badge hidden></b>' : ''}</a>`,
+    (n) => `<a href="${n.href}" title="${n.label}" class="${n.desktop ? 'desk-only' : ''}">${icon(n.icon, 20)}<span>${n.label}</span>${n.badge ? '<b class="badge" data-badge hidden></b>' : ''}</a>`,
   ).join('');
   $('#search-ic').innerHTML = icon('search', 16);
+  $('#top-links').innerHTML = NAV.filter((n) => n.desktop)
+    .map((n) => `<a href="${n.href}" class="icon-btn" title="${n.label}">${icon(n.icon, 20)}</a>`)
+    .join('');
 }
 
 function setupSearch() {
@@ -110,8 +118,9 @@ function setupMiniTimer() {
 }
 
 async function init() {
-  await load();
+  const firstRun = await load();
   applyTheme();
+  if (firstRun) await importPack('cejm').catch((e) => console.warn('Paquet CEJM', e));
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
   buildNav();
   setupSearch();

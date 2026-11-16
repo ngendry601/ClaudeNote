@@ -1,5 +1,6 @@
 // Répétition espacée (variante simplifiée de SM-2, proche d'Anki)
 import { DAY, startOfDay } from './store.js';
+import { sectionColor, cleanSection, parseCardBlock } from './md.js';
 
 export const GRADES = [
   { g: 0, label: 'À revoir', key: '1', cls: 'again' },
@@ -46,15 +47,24 @@ export function intervalLabel(card, grade) {
 /**
  * Extrait des flashcards d'un texte de cours.
  * Formats reconnus :
+ *   ::: Question (carte riche, style fiche de révision)
+ *   - **mot-clé** : explication
+ *   ==l'essentiel surligné==
+ *   !! piège à éviter
+ *   :::
  *   question :: réponse
  *   Q : question  (ligne suivante)  R : réponse
  *   - **Terme** : définition
+ * Chaque carte reçoit la section (titre ##) et la sous-section (###) où elle se trouve.
  */
 export function extractCards(text) {
   const out = [];
   const lines = text.replace(/\r/g, '').split('\n');
   let inCode = false;
+  let section = '';
+  let sub = '';
   const clean = (s) => s.trim().replace(/^[-*+]\s+/, '').trim();
+  const meta = () => ({ section, sub, color: sectionColor(section) });
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
     if (/^\s*```/.test(l)) {
@@ -63,16 +73,31 @@ export function extractCards(text) {
     }
     if (inCode || /^\s*>/.test(l) || /`[^`]*::[^`]*`/.test(l)) continue;
     let m;
+    if ((m = l.match(/^(#{2,3})\s+(.*)$/))) {
+      if (m[1].length === 2) {
+        section = cleanSection(m[2]);
+        sub = '';
+      } else sub = m[2].trim();
+      continue;
+    }
+    if ((m = l.match(/^:::\s+(.+)$/))) {
+      const buf = [];
+      i++;
+      while (i < lines.length && !/^:::\s*$/.test(lines[i])) buf.push(lines[i++]);
+      const { back, trap } = parseCardBlock(buf);
+      if (back) out.push({ front: m[1].trim(), back, trap, ...meta() });
+      continue;
+    }
     if ((m = l.match(/^\s*(?:[-*+]\s+|\d+[.)]\s+)?(.+?)\s*::\s*(.+)$/))) {
-      out.push({ front: clean(m[1]), back: clean(m[2]) });
+      out.push({ front: clean(m[1]), back: clean(m[2]), ...meta() });
     } else if ((m = l.match(/^\s*(?:[-*+]\s+)?(?:Q|Question)\s*[:–-]\s*(.+)$/i))) {
       const n = (lines[i + 1] || '').match(/^\s*(?:[-*+]\s+)?(?:R|A|Réponse|Reponse|Answer)\s*[:–-]\s*(.+)$/i);
       if (n) {
-        out.push({ front: m[1].trim(), back: n[1].trim() });
+        out.push({ front: m[1].trim(), back: n[1].trim(), ...meta() });
         i++;
       }
     } else if ((m = l.match(/^\s*[-*+]\s+\*\*(.+?)\*\*\s*[:–—]\s*(.+)$/))) {
-      out.push({ front: `Définition : ${m[1].trim()}`, back: m[2].trim() });
+      out.push({ front: `Définition : ${m[1].trim()}`, back: m[2].trim(), ...meta() });
     }
   }
   return out;

@@ -13,17 +13,8 @@ export function startOfDay(ts = Date.now()) {
   return d.getTime();
 }
 
-export const DEFAULT_SOURCES = [
-  { id: 'hn', name: 'Hacker News', type: 'hn', enabled: true, color: '#ff6600' },
-  { id: 'devto', name: 'DEV Community', type: 'devto', enabled: true, color: '#3b49df' },
-  { id: 'korben', name: 'Korben', type: 'rss', url: 'https://korben.info/feed', enabled: true, color: '#e11d48' },
-  { id: 'next', name: 'Next', type: 'rss', url: 'https://next.ink/feed/', enabled: true, color: '#0ea5e9' },
-  { id: 'certfr', name: 'CERT-FR (alertes sécu)', type: 'rss', url: 'https://cert.cyber.gouv.fr/feed/', enabled: true, color: '#dc2626' },
-  { id: 'lmi', name: 'Le Monde Informatique', type: 'rss', url: 'https://www.lemondeinformatique.fr/rss.xml', enabled: false, color: '#16a34a' },
-  { id: 'numerama', name: 'Numerama', type: 'rss', url: 'https://www.numerama.com/feed/', enabled: false, color: '#9333ea' },
-  { id: 'zdnet', name: 'ZDNet France', type: 'rss', url: 'https://www.zdnet.fr/feeds/rss/actualites/', enabled: false, color: '#ca8a04' },
-  { id: 'lobsters', name: 'Lobsters', type: 'rss', url: 'https://lobste.rs/rss', enabled: false, color: '#ac130d' },
-];
+export { DEFAULT_SOURCES } from './sources.js';
+import { DEFAULT_SOURCES } from './sources.js';
 
 export const DEFAULT_PROXIES = [
   'proxy?url=', // fourni par server.js (le plus fiable)
@@ -39,6 +30,9 @@ function defaults() {
     decks: [],
     cards: [],
     exams: [],
+    quizLog: [],
+    quizMistakes: [],
+    push: { vapidPublic: '', vapidPrivate: '', subscription: null, remindHour: 18 },
     reviewLog: {},
     pomodoroLog: {},
     news: {
@@ -75,10 +69,10 @@ export async function load() {
   }
   if (saved) {
     Object.assign(state, mergeDefaults(saved, defaults()));
-  } else {
-    seed();
-    await flush();
+    return false;
   }
+  await flush();
+  return true; // premier lancement
 }
 
 export function replaceState(newState) {
@@ -146,67 +140,6 @@ export function streak() {
 }
 
 export const SUBJECT_COLORS = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#14b8a6', '#64748b'];
-
-/* ---------- Données d'exemple au premier lancement ---------- */
-function seed() {
-  const now = Date.now();
-  const s1 = { id: uid(), name: 'Réseaux', color: '#0ea5e9', createdAt: now };
-  const s2 = { id: uid(), name: 'Algorithmique', color: '#10b981', createdAt: now };
-  state.subjects.push(s1, s2);
-
-  const c1 = {
-    id: uid(),
-    subjectId: s1.id,
-    title: 'Le modèle OSI (exemple)',
-    tags: ['exemple'],
-    attachments: [],
-    createdAt: now,
-    updatedAt: now,
-    content: `# Le modèle OSI
-
-Ceci est un **cours d'exemple** pour te montrer comment ça marche. Tu peux le modifier ou le supprimer.
-
-## Les 7 couches
-
-| N° | Couche | Exemple |
-|----|--------|---------|
-| 7 | Application | HTTP, DNS |
-| 4 | Transport | TCP, UDP |
-| 3 | Réseau | IP |
-| 2 | Liaison | Ethernet |
-
-> Astuce : toute ligne de la forme \`question :: réponse\` devient une flashcard !
-
-## Flashcards détectées automatiquement
-
-- Combien de couches a le modèle OSI ? :: 7
-- Quelle couche gère le routage ? :: La couche 3 (Réseau)
-- TCP ou UDP : lequel garantit l'ordre des paquets ? :: TCP
-- **DNS** : système qui traduit un nom de domaine en adresse IP
-
-Q : Sur quel port écoute HTTPS par défaut ?
-R : 443
-
-## Code
-
-\`\`\`bash
-ping -c 4 8.8.8.8
-\`\`\`
-`,
-  };
-  state.courses.push(c1);
-
-  const deck = ensureDeckForCourse(c1);
-  [
-    ['Combien de couches a le modèle OSI ?', '7'],
-    ['Quelle couche gère le routage ?', 'La couche 3 (Réseau)'],
-    ['Sur quel port écoute HTTPS par défaut ?', '443'],
-  ].forEach(([front, back]) => state.cards.push(newCard(deck.id, front, back)));
-
-  const exam = new Date();
-  exam.setDate(exam.getDate() + 12);
-  state.exams.push({ id: uid(), title: 'Partiel Réseaux', date: dayKey(exam), subjectId: s1.id });
-}
 
 export function newCard(deckId, front, back, extra = {}) {
   return { id: uid(), deckId, front, back, ease: 2.5, interval: 0, reps: 0, lapses: 0, due: Date.now(), createdAt: Date.now(), lastReview: 0, ...extra };

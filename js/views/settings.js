@@ -4,6 +4,7 @@ import { esc, icon, toast, confirmBox, formModal, download, fmtDate } from '../u
 import { askPermission, notifPermission, notify } from '../notify.js';
 import { startAutoRefresh } from '../news.js';
 import { applyTheme } from '../theme.js';
+import { pushSupported, isStandalone, isIOS, subscribePush, unsubscribePush, configCode, REPO } from '../push.js';
 
 const blobToB64 = (b) =>
   new Promise((res) => {
@@ -11,6 +12,34 @@ const blobToB64 = (b) =>
     r.onload = () => res(r.result);
     r.readAsDataURL(b);
   });
+
+function pushHtml() {
+  const p = state.push;
+  const secure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  let body;
+  if (!pushSupported() || !secure) {
+    body = isIOS() && !isStandalone()
+      ? `<p>Sur iPhone, installe d'abord l'appli : dans <b>Safari</b>, bouton <b>Partager</b> → <b>Sur l'écran d'accueil</b>, puis ouvre ClaudeNote depuis l'icône et reviens ici (iOS 16.4 minimum).</p>`
+      : `<p class="muted">Les notifications push ne sont pas disponibles ici${secure ? ' (navigateur non compatible)' : ' : ouvre l\'appli depuis son adresse https (GitHub Pages)'}.</p>`;
+  } else if (!p.subscription) {
+    body = `<p>Reçois tes <b>alertes de veille</b> et un <b>rappel de révision quotidien</b> même quand l'appli est fermée.</p>
+      ${isIOS() && !isStandalone() ? `<p class="banner small">Sur iPhone, installe d'abord l'appli sur l'écran d'accueil (Partager → Sur l'écran d'accueil) et ouvre-la depuis l'icône.</p>` : ''}
+      <button class="btn primary" data-act="push-on">${icon('bell', 16)} Activer sur cet appareil</button>`;
+  } else {
+    const code = configCode();
+    body = `<p>✅ Cet appareil est abonné. Dernière étape (une seule fois) : donne ce code à GitHub pour que le robot puisse t'envoyer les notifications.</p>
+      <ol class="steps">
+        <li><button class="btn sm primary" data-act="push-copy">Copier le code</button></li>
+        <li>Ouvre <a href="https://github.com/${REPO}/settings/secrets/actions/new" target="_blank" rel="noopener">les secrets du dépôt sur GitHub</a></li>
+        <li>Nom : <code>PUSH_CONFIG</code> · Valeur : colle le code · <b>Add secret</b></li>
+      </ol>
+      <textarea readonly rows="3" data-code>${esc(code)}</textarea>
+      <label class="field inline"><span>Rappel de révision chaque jour à</span><select data-remind>${Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${+p.remindHour === h ? 'selected' : ''}>${h} h</option>`).join('')}</select></label>
+      <p class="muted small">Si tu changes l'heure du rappel, tes mots-clés ou tes sources, recopie le code dans le secret (bouton « Update »). Le robot passe environ toutes les 30 min.</p>
+      <div class="row-set"><button class="btn sm ghost" data-act="push-test">Tester une notification</button><button class="btn sm ghost danger-txt" data-act="push-off">Désactiver</button></div>`;
+  }
+  return `<section class="panel push-box"><h2>📱 Notifications sur ton téléphone (appli fermée)</h2>${body}</section>`;
+}
 
 export default function settingsView(el) {
   function draw() {
@@ -48,6 +77,8 @@ export default function settingsView(el) {
         <textarea data-proxies rows="3">${esc(n.proxies.join('\n'))}</textarea>
       </section>
 
+      ${pushHtml()}
+
       <section class="panel"><h2>${icon('download')} Sauvegarde</h2>
         <p class="muted">Tes données sont stockées uniquement dans ce navigateur. Pense à exporter régulièrement (ou pour les transférer sur un autre appareil).</p>
         <div class="row-set">
@@ -77,6 +108,35 @@ export default function settingsView(el) {
       return;
     }
     const a = e.target.closest('[data-act]')?.dataset.act;
+    if (a === 'push-on') {
+      try {
+        await subscribePush();
+        toast('Abonnement push activé ✅', 'success');
+      } catch (err) {
+        toast(`Impossible d'activer : ${err.message}`, 'error');
+      }
+      draw();
+    }
+    if (a === 'push-copy') {
+      const code = configCode();
+      try {
+        await navigator.clipboard.writeText(code);
+        toast('Code copié 📋', 'success');
+      } catch {
+        const ta = el.querySelector('[data-code]');
+        ta.select();
+        document.execCommand('copy');
+        toast('Code sélectionné : copie-le');
+      }
+    }
+    if (a === 'push-test') {
+      const reg = await navigator.serviceWorker.ready;
+      reg.showNotification('🔔 ClaudeNote', { body: 'Les notifications fonctionnent sur cet appareil !', icon: 'icons/icon-192.png', data: { hash: '#/' } });
+    }
+    if (a === 'push-off' && (await confirmBox('Désactiver les notifications push sur cet appareil ?', { ok: 'Désactiver' }))) {
+      await unsubscribePush().catch(() => {});
+      draw();
+    }
     if (a === 'test') notify('🔔 Test ClaudeNote', 'Les notifications fonctionnent !', '#/veille', 'test');
     if (a === 'addsrc') {
       const v = await formModal('Ajouter un flux RSS', [
@@ -116,6 +176,12 @@ export default function settingsView(el) {
   };
   el.onchange = async (e) => {
     const t = e.target;
+    if (t.matches('[data-remind]')) {
+      state.push.remindHour = +t.value;
+      save();
+      draw();
+      toast("Pense à recopier le code dans le secret GitHub");
+    }
     if (t.matches('[data-goal]')) {
       state.settings.dailyGoal = Math.max(1, +t.value || 30);
       save();

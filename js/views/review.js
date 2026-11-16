@@ -1,6 +1,6 @@
 import { state, save, getDeck, cardsOf, isDue, logReview, dayKey } from '../store.js';
 import { esc, icon } from '../ui.js';
-import { md } from '../md.js';
+import { cardFace } from '../cardview.js';
 import { schedule, intervalLabel, GRADES, shuffle } from '../srs.js';
 
 export default function review(el, { params: [id], query }) {
@@ -39,11 +39,11 @@ export default function review(el, { params: [id], query }) {
       <div class="review-top"><a href="${backHref}" class="back-link">${icon('x', 16)} Quitter</a>
         <span class="muted">${esc(title)}${libre ? ' · <b>mode libre</b>' : ''}</span><span class="muted">${Math.min(idx + 1, queue.length)} / ${queue.length}</span></div>
       <div class="progress"><i style="width:${(idx / queue.length) * 100}%"></i></div>
-      <div class="flash ${flipped ? 'flipped' : ''}" data-flip tabindex="0">
-        ${id === 'all' && d ? `<span class="flash-deck">${esc(d.name)}</span>` : ''}
-        <div class="flash-front md">${md(card.front)}</div>
-        ${flipped ? `<hr><div class="flash-back md">${md(card.back)}</div>` : `<p class="muted flash-hint">Clique ou appuie sur <kbd>Espace</kbd> pour voir la réponse</p>`}
-      </div>
+      <div class="flash-wrap" data-flip tabindex="0">${cardFace(card, {
+        flipped,
+        corner: id === 'all' && d ? d.name : card.lapses ? `${card.lapses} oubli${card.lapses > 1 ? 's' : ''}` : '',
+        hint: 'Clique ou appuie sur <kbd>Espace</kbd> pour voir la réponse',
+      })}</div>
       <div class="grades">${
         flipped
           ? GRADES.map((g) => `<button class="grade ${g.cls}" data-g="${g.g}"><b>${g.label}</b><small>${libre ? '' : intervalLabel(card, g.g)}</small><kbd>${g.key}</kbd></button>`).join('')

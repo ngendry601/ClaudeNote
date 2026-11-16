@@ -4,8 +4,8 @@ import { notify } from './notify.js';
 
 const MAX_ITEMS = 500;
 
-async function fetchText(url, { json = false } = {}) {
-  const tries = [url, ...state.news.proxies.filter(Boolean).map((p) => p + encodeURIComponent(url))];
+async function fetchText(url, { json = false, cached = null } = {}) {
+  const tries = [...(cached ? [cached] : []), url, ...state.news.proxies.filter(Boolean).map((p) => p + encodeURIComponent(url))];
   let lastErr;
   for (const u of tries) {
     try {
@@ -62,7 +62,8 @@ async function fetchDevto(src) {
 }
 
 async function fetchRSS(src) {
-  const txt = await fetchText(src.url);
+  // feeds/<id>.xml est généré toutes les 30 min par la GitHub Action (voir scripts/veille.mjs)
+  const txt = await fetchText(src.url, { cached: src.custom ? null : `feeds/${src.id}.xml` });
   const doc = new DOMParser().parseFromString(txt, 'text/xml');
   if (doc.querySelector('parsererror')) throw new Error('Flux RSS invalide');
   const nodes = [...doc.querySelectorAll('item, entry')].slice(0, 40);

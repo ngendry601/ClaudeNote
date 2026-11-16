@@ -30,6 +30,7 @@ const ICONS = {
   pause: '<path d="M7 4h3v16H7zM14 4h3v16h-3z"/>',
   eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>',
   external: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  quiz: '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
 };
 export const icon = (name, size = 18) =>

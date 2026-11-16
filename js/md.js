@@ -20,22 +20,71 @@ export function inline(raw) {
   return s;
 }
 
+// Couleurs de section façon « fiche de révision » (bandeaux colorés)
+const SECTION_COLORS = [
+  [/m[ée]thod/i, '#334155'],
+  [/[ée]conom/i, '#15803d'],
+  [/droit|juridi/i, '#b91c1c'],
+  [/manag|strat[ée]g/i, '#7e22ce'],
+  [/auteur|date|article/i, '#1f2937'],
+  [/pi[èe]ge|erreur/i, '#be123c'],
+  [/r[ée]seau|syst[èe]me|informati|d[ée]v|programm|algo/i, '#0369a1'],
+  [/math|calcul/i, '#c2410c'],
+];
+const PALETTE = ['#4338ca', '#0f766e', '#b45309', '#be185d', '#0369a1', '#4d7c0f', '#7e22ce', '#b91c1c'];
+export function sectionColor(name = '') {
+  if (!name) return '#4338ca';
+  for (const [re, c] of SECTION_COLORS) if (re.test(name)) return c;
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return PALETTE[h % PALETTE.length];
+}
+export const cleanSection = (s = '') => s.replace(/^\s*\d+[.)]\s*/, '').replace(/\s*—\s*mots? à savoir.*$/i, '').trim();
+
+/** Parse un bloc de carte riche : lignes « !! » = piège, le reste = verso */
+export function parseCardBlock(lines) {
+  const back = [];
+  const traps = [];
+  for (const l of lines) {
+    const t = l.match(/^\s*!!\s*(.*)$/);
+    if (t) traps.push(t[1]);
+    else back.push(l);
+  }
+  return { back: back.join('\n').trim(), trap: traps.join(' ') };
+}
+
+export function cardBlockHtml(front, back, trap, color) {
+  return `<div class="fc-block" style="--fc:${color}"><div class="fc-q">${inline(front)}</div><div class="fc-a md">${md(back)}</div>${
+    trap ? `<div class="fc-trap"><b>⚠️ Piège</b> ${inline(trap)}</div>` : ''
+  }</div>`;
+}
+
 const isList = (l) => /^\s*([-*+]|\d+[.)])\s+/.test(l);
 const isTableRow = (l) => /^\s*\|.*\|\s*$/.test(l);
 const isTableSep = (l) => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l || '');
 const cardLine = (l) => !/`[^`]*::[^`]*`/.test(l) && l.match(/^\s*(?:[-*+]\s+|\d+[.)]\s+)?(.+?)\s*::\s*(.+)$/);
 
 function isBlockStart(l, next) {
-  return /^```/.test(l) || /^#{1,6}\s/.test(l) || /^>/.test(l) || isList(l) || (isTableRow(l) && isTableSep(next)) || /^\s*(-{3,}|\*{3,})\s*$/.test(l);
+  return /^```/.test(l) || /^:::\s+\S/.test(l) || /^#{1,6}\s/.test(l) || /^>/.test(l) || isList(l) || (isTableRow(l) && isTableSep(next)) || /^\s*(-{3,}|\*{3,})\s*$/.test(l);
 }
 
 export function md(src = '') {
   const lines = src.replace(/\r/g, '').split('\n');
   const out = [];
   let i = 0;
+  let section = '';
   while (i < lines.length) {
     const l = lines[i];
     let m;
+    if ((m = l.match(/^:::\s+(.+)$/))) {
+      const buf = [];
+      i++;
+      while (i < lines.length && !/^:::\s*$/.test(lines[i])) buf.push(lines[i++]);
+      i++;
+      const { back, trap } = parseCardBlock(buf);
+      out.push(cardBlockHtml(m[1].trim(), back, trap, sectionColor(section)));
+      continue;
+    }
     if (/^```/.test(l)) {
       const lang = l.slice(3).trim();
       const buf = [];
@@ -47,7 +96,11 @@ export function md(src = '') {
     }
     if ((m = l.match(/^(#{1,6})\s+(.*)$/))) {
       const n = m[1].length;
-      out.push(`<h${n}>${inline(m[2])}</h${n}>`);
+      if (n === 2) {
+        section = cleanSection(m[2]);
+        out.push(`<h2 class="sec" style="--fc:${sectionColor(section)}">${inline(m[2])}</h2>`);
+      } else if (n === 3) out.push(`<h3 class="sub" style="--fc:${sectionColor(section)}">${inline(m[2])}</h3>`);
+      else out.push(`<h${n}>${inline(m[2])}</h${n}>`);
       i++;
       continue;
     }

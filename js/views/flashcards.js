@@ -1,6 +1,8 @@
 import { state, save, uid, getSubject, getDeck, getCourse, cardsOf, isDue, newCard } from '../store.js';
 import { esc, icon, relTime, formModal, confirmBox, openModal, toast, $ } from '../ui.js';
-import { inline } from '../md.js';
+import { inline, sectionColor } from '../md.js';
+import { cardFace, cardColor, allSections } from '../cardview.js';
+import { PACKS, importPack, packInstalled } from '../packs.js';
 
 const subjectOptions = () => [{ value: '', label: 'Sans matière' }, ...state.subjects.map((s) => ({ value: s.id, label: s.name }))];
 
@@ -34,10 +36,27 @@ export function decksList(el) {
               })
               .join('')}</div>`
           : `<div class="empty">${icon('cards', 40)}<h3>Aucun paquet</h3><p>Crée un paquet, ou génère des cartes automatiquement depuis un cours.</p><button class="btn primary" data-act="new">${icon('plus')} Nouveau paquet</button></div>`
-      }`;
+      }
+      <section class="panel library"><h2>📦 Paquets prêts à l'emploi</h2>
+        ${PACKS.map((p) => `<div class="pack"><div><b>${esc(p.title)}</b><small>${esc(p.desc)}</small></div>
+          <button class="btn sm ${packInstalled(p.id) ? 'ghost' : 'primary'}" data-pack="${p.id}">${packInstalled(p.id) ? 'Mettre à jour' : 'Installer'}</button></div>`).join('')}
+      </section>`;
   }
   draw();
   el.onclick = async (e) => {
+    const pk = e.target.closest('[data-pack]');
+    if (pk) {
+      pk.disabled = true;
+      try {
+        const r = await importPack(pk.dataset.pack);
+        toast(`${r.added} carte(s) ajoutée(s), ${r.updated} mise(s) à jour`, 'success');
+        draw();
+      } catch (err) {
+        toast('Import impossible (hors ligne ?)', 'error');
+        pk.disabled = false;
+      }
+      return;
+    }
     if (e.target.closest('[data-act="new"]')) {
       const v = await formModal('Nouveau paquet', [
         { name: 'name', label: 'Nom', required: true, placeholder: 'Ex : Commandes Linux' },
@@ -57,7 +76,10 @@ function editCard(card, onDone) {
   openModal(
     `<form class="form"><h3>Modifier la carte</h3>
       <label class="field"><span>Recto (question)</span><textarea name="front" rows="3">${esc(card.front)}</textarea></label>
-      <label class="field"><span>Verso (réponse)</span><textarea name="back" rows="3">${esc(card.back)}</textarea></label>
+      <label class="field"><span>Verso (réponse) — Markdown : **gras**, ==surligné==, listes « - »</span><textarea name="back" rows="6">${esc(card.back)}</textarea></label>
+      <label class="field"><span>⚠️ Piège à éviter (optionnel)</span><input name="trap" value="${esc(card.trap || '')}"></label>
+      <label class="field"><span>Section (bandeau coloré, optionnel)</span><input name="section" list="sections-dl" value="${esc(card.section || '')}" placeholder="Ex : Droit"></label>
+      <datalist id="sections-dl">${allSections().map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
       <label class="check"><input type="checkbox" name="reset"> Réinitialiser la progression</label>
       <div class="modal-actions"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn primary">Enregistrer</button></div></form>`,
     {
@@ -67,6 +89,9 @@ function editCard(card, onDone) {
           const f = new FormData(e.target);
           card.front = f.get('front').trim();
           card.back = f.get('back').trim();
+          card.trap = f.get('trap').trim();
+          card.section = f.get('section').trim();
+          card.color = card.section ? sectionColor(card.section) : '';
           if (f.get('reset')) Object.assign(card, { ease: 2.5, interval: 0, reps: 0, lapses: 0, due: Date.now(), lastReview: 0 });
           save();
           close();
@@ -130,7 +155,7 @@ export function deckView(el, { params: [id] }) {
     if (!cards.length) return `<p class="empty-txt">${q ? 'Aucun résultat.' : 'Aucune carte pour le moment. Ajoute ta première carte ci-dessus.'}</p>`;
     return `<ul class="card-list">${cards
       .map(
-        (c) => `<li><div class="cl-front">${inline(c.front)}</div><div class="cl-back">${inline(c.back)}</div>
+        (c) => `<li style="--fc:${cardColor(c)}"><div class="cl-front" data-preview="${c.id}">${c.section ? `<small class="cl-sec">${esc(c.section)}</small>` : ''}${inline(c.front)}</div><div class="cl-back">${inline(c.back.split('\n')[0])}${c.back.includes('\n') ? ' …' : ''}</div>
         <div class="cl-meta">${isDue(c, now) ? '<span class="pill due">à réviser</span>' : `<span class="muted">${relTime(c.due)}</span>`}
         <button class="icon-btn" data-edit="${c.id}" title="Modifier">${icon('edit', 15)}</button>
         <button class="icon-btn" data-del="${c.id}" title="Supprimer">${icon('trash', 15)}</button></div></li>`,
@@ -151,8 +176,12 @@ export function deckView(el, { params: [id] }) {
           <button class="btn ghost danger-txt" data-act="delete">${icon('trash', 16)}</button></div></div>
       <form class="add-card panel" data-add>
         <textarea name="front" rows="2" placeholder="Recto — la question" required></textarea>
-        <textarea name="back" rows="2" placeholder="Verso — la réponse" required></textarea>
+        <textarea name="back" rows="2" placeholder="Verso — la réponse (- **mot-clé** : …, ==essentiel==)" required></textarea>
         <button class="btn primary">${icon('plus')} Ajouter <kbd>Ctrl+Entrée</kbd></button>
+        <details class="add-more"><summary>Options : piège, section</summary>
+          <input name="trap" placeholder="⚠️ Piège à éviter (optionnel)">
+          <input name="section" list="sections-dl2" placeholder="Section (ex : Droit)">
+          <datalist id="sections-dl2">${allSections().map((x) => `<option value="${esc(x)}">`).join('')}</datalist></details>
       </form>
       <div class="filter-bar"><label class="search-in">${icon('search', 16)}<input type="search" placeholder="Rechercher une carte…" data-q value="${esc(q)}"></label></div>
       <div data-list>${listHtml()}</div>`;
@@ -166,7 +195,8 @@ export function deckView(el, { params: [id] }) {
     const front = f.get('front').trim();
     const back = f.get('back').trim();
     if (!front || !back) return;
-    state.cards.push(newCard(deck.id, front, back));
+    const section = (f.get('section') || '').trim();
+    state.cards.push(newCard(deck.id, front, back, { trap: (f.get('trap') || '').trim(), section, color: section ? sectionColor(section) : '' }));
     save();
     e.target.reset();
     $('[data-list]', el).innerHTML = listHtml();
@@ -183,6 +213,12 @@ export function deckView(el, { params: [id] }) {
     }
   };
   el.onclick = async (e) => {
+    const pv = e.target.closest('[data-preview]');
+    if (pv) {
+      const c = state.cards.find((x) => x.id === pv.dataset.preview);
+      openModal(`${cardFace(c)}<div class="modal-actions"><button class="btn primary" data-close>Fermer</button></div>`, { wide: true });
+      return;
+    }
     const ed = e.target.closest('[data-edit]');
     if (ed) return editCard(state.cards.find((c) => c.id === ed.dataset.edit), () => ($('[data-list]', el).innerHTML = listHtml()));
     const del = e.target.closest('[data-del]');

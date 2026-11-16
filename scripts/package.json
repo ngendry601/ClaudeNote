@@ -1,0 +1,9 @@
+{
+  "name": "claudenote-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Robot de veille et de notifications push (exécuté par GitHub Actions)",
+  "dependencies": {
+    "web-push": "3.6.7"
+  }
+}
