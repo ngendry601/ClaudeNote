@@ -168,7 +168,7 @@ export default function quizView(el, { query }) {
 
     const fb = q.answered
       ? `<div class="feedback ${q.selfPending ? '' : q.correct ? 'ok' : 'ko'}"><b>${q.selfPending ? '🤔 Alors, tu savais ?' : q.correct ? '✅ Bonne réponse !' : '❌ Raté'}</b>${q.type === 'write' && !q.correct && q.typed ? `<span>Tu as répondu : « ${esc(q.typed)} »</span>` : ''}</div>
-         <div class="explain">${cardFace(q.card, { corner: 'Correction' })}</div>
+         <div class="explain">${cardFace(q.card, { corner: 'Correction' })}${(() => { const real = state.cards.find((c) => c.id === q.card.cardId); return real && real.back.includes('###') ? `<a class="small" href="#/fiche/${real.id}">⛶ Voir toute la fiche « ${esc(real.front)} »</a>` : ''; })()}</div>
          ${q.type === 'self' && q.selfPending ? `<div class="tf-btns"><button class="btn lg wrong" data-self="0">Je ne savais pas</button><button class="btn lg right" data-self="1">Je savais</button></div>` : `<button class="btn primary lg block" data-next>${run.idx + 1 < n ? 'Question suivante' : 'Voir mon score'} <kbd>Entrée</kbd></button>`}`
       : '';
 

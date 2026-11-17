@@ -160,6 +160,7 @@ export function deckView(el, { params: [id] }) {
       .map(
         (c) => `<li style="--fc:${cardColor(c)}"><div class="cl-front" data-preview="${c.id}">${c.section ? `<small class="cl-sec">${esc(c.section)}</small>` : ''}${inline(c.front)}</div><div class="cl-back">${inline(c.back.split('\n')[0])}${c.back.includes('\n') ? ' …' : ''}</div>
         <div class="cl-meta">${isDue(c, now) ? '<span class="pill due">à réviser</span>' : `<span class="muted">${relTime(c.due)}</span>`}
+        <a class="icon-btn" href="#/fiche/${c.id}" title="Voir en plein écran">⛶</a>
         <button class="icon-btn" data-edit="${c.id}" title="Modifier">${icon('edit', 15)}</button>
         <button class="icon-btn" data-del="${c.id}" title="Supprimer">${icon('trash', 15)}</button></div></li>`,
       )
@@ -219,7 +220,7 @@ export function deckView(el, { params: [id] }) {
     const pv = e.target.closest('[data-preview]');
     if (pv) {
       const c = state.cards.find((x) => x.id === pv.dataset.preview);
-      openModal(`${cardFace(c)}<div class="modal-actions"><button class="btn primary" data-close>Fermer</button></div>`, { wide: true });
+      openModal(`${cardFace(c)}<div class="modal-actions"><a class="btn" href="#/fiche/${c.id}" data-close>⛶ Plein écran</a><button class="btn primary" data-close>Fermer</button></div>`, { wide: true });
       return;
     }
     const ed = e.target.closest('[data-edit]');

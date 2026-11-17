@@ -380,7 +380,19 @@ export function courseView(el, { params: [id] }) {
     savedLbl() && (savedLbl().textContent = 'Enregistré');
     refreshHeader();
   }, 500);
-  const renderPreview = debounce(() => (preview.innerHTML = md(editor.value)), 120);
+  // ajoute un lien « plein écran » sur chaque fiche du cours qui existe dans le paquet
+  const setPreview = (src) => {
+    preview.innerHTML = md(src);
+    const deck = deckForCourse(course.id);
+    if (!deck) return;
+    const byFront = new Map(cardsOf(deck.id).map((c) => [c.front.trim().toLowerCase(), c.id]));
+    $$('.fiche-head', preview).forEach((h) => {
+      const id = byFront.get(h.textContent.trim().toLowerCase());
+      if (id) h.insertAdjacentHTML('beforeend', `<a class="ff-open" href="#/fiche/${id}" title="Plein écran">⛶</a>`);
+    });
+  };
+  setPreview(course.content);
+  const renderPreview = debounce(() => setPreview(editor.value), 120);
 
   editor.addEventListener('input', () => {
     savedLbl() && (savedLbl().textContent = 'Modification…');
@@ -444,7 +456,7 @@ export function courseView(el, { params: [id] }) {
       mode = m.dataset.mode;
       $('[data-wrap]', el).className = `editor-wrap mode-${mode}`;
       $$('[data-mode]', el).forEach((b) => b.classList.toggle('on', b === m));
-      if (mode === 'read') preview.innerHTML = md(editor.value);
+      if (mode === 'read') setPreview(editor.value);
       return;
     }
     const op = e.target.closest('[data-open]');

@@ -12,6 +12,7 @@ import pomodoroView from './views/pomodoro.js';
 import settingsView from './views/settings.js';
 import searchView from './views/search.js';
 import quizView from './views/quiz.js';
+import ficheView from './views/fiche.js';
 import { importPack, outdatedPacks } from './packs.js';
 
 const NAV = [
@@ -36,6 +37,7 @@ const routes = [
   [/^\/reglages$/, settingsView],
   [/^\/recherche$/, searchView],
   [/^\/quiz$/, quizView],
+  [/^\/fiche\/([\w-]+)$/, ficheView],
 ];
 
 const view = $('#view');
@@ -67,7 +69,8 @@ function render() {
     a.classList.toggle('active', !!item?.match.test(path));
   });
   if (path !== '/recherche') $('#search').value = '';
-  document.body.classList.toggle('focus-mode', path.startsWith('/reviser'));
+  document.body.classList.toggle('focus-mode', path.startsWith('/reviser') || path.startsWith('/fiche'));
+  document.body.classList.toggle('fiche-mode', path.startsWith('/fiche'));
   for (const [re, fn] of routes) {
     const m = path.match(re);
     if (m) {

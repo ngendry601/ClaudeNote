@@ -1,6 +1,7 @@
 import { state, save, getDeck, cardsOf, isDue, logReview, dayKey } from '../store.js';
 import { esc, icon } from '../ui.js';
 import { cardFace } from '../cardview.js';
+import { ficheOverlay } from './fiche.js';
 import { schedule, intervalLabel, GRADES, shuffle } from '../srs.js';
 
 export default function review(el, { params: [id], query }) {
@@ -37,6 +38,7 @@ export default function review(el, { params: [id], query }) {
     const d = state.decks.find((x) => x.id === card.deckId);
     el.innerHTML = `
       <div class="review-top"><a href="${backHref}" class="back-link">${icon('x', 16)} Quitter</a>
+        ${flipped ? `<button class="back-link link-btn" data-full>⛶ Plein écran</button>` : ''}
         <span class="muted">${esc(title)}${libre ? ' · <b>mode libre</b>' : ''}</span><span class="muted">${Math.min(idx + 1, queue.length)} / ${queue.length}</span></div>
       <div class="progress"><i style="width:${(idx / queue.length) * 100}%"></i></div>
       <div class="flash-wrap" data-flip tabindex="0">${cardFace(card, {
@@ -67,6 +69,7 @@ export default function review(el, { params: [id], query }) {
 
   draw();
   el.onclick = (e) => {
+    if (e.target.closest('[data-full]')) return ficheOverlay(queue[idx]);
     const g = e.target.closest('[data-g]');
     if (g) return grade(+g.dataset.g);
     if (e.target.closest('[data-flip]') && !flipped && !e.target.closest('a')) {
