@@ -561,3 +561,52 @@ body.fiche-mode .view { max-width: none; padding: 0; margin: 0; }
 }
 .ff-open { float: right; color: #fff; opacity: .9; text-decoration: none; margin-left: 8px; }
 .ff-open:hover { opacity: 1; text-decoration: none; }
+
+/* ---------- Fiche complète (style fiche papier du PDF) ---------- */
+.sheet-view { min-height: 100vh; background: var(--bg); }
+.sheet-view .ff-bar .seg { flex-shrink: 0; }
+.sheet-wrap { padding: 8px; overflow-x: hidden; }
+.sheet { --ink: #111827; --muted-ink: #374151; background: #fff; color: var(--ink); margin: 0 auto; padding: 22px 26px; border-radius: 4px; box-shadow: 0 2px 14px rgba(0, 0, 0, .18); }
+.sh-title { color: #1e40af; font-size: 1.35em; font-weight: 800; text-transform: uppercase; letter-spacing: .01em; margin: 0 0 .7em; column-span: all; }
+.sh-sec { break-inside: auto; margin: 0 0 .9em; }
+.sh-band { background: var(--fc); color: #fff; margin: 0 0 .45em; padding: .3em .6em; font-size: 1.02em; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; break-after: avoid; border-radius: 2px; display: block; }
+.sheet .sh-body { line-height: 1.32; }
+.sheet .sh-body h3 { color: var(--fc); font-size: 1em; font-weight: 800; margin: .55em 0 .15em; break-after: avoid; }
+.sheet .sh-body ul, .sheet .sh-body ol { margin: .1em 0; padding-left: 1.05em; }
+.sheet .sh-body li { margin: .08em 0; break-inside: avoid; }
+.sheet .sh-body li::marker { color: var(--ink); }
+.sheet .sh-body p { margin: .2em 0; break-inside: avoid; }
+.sheet .sh-body strong { color: var(--ink); font-weight: 800; }
+.sheet mark { background: #fcd34d; color: #111; padding: 0 .15em; }
+.sheet code { background: #f1f5f9; color: var(--ink); }
+.sh-trap { margin: .3em 0 0; padding: .25em .5em; border-left: 3px solid #e11d48; background: #fff1f2; color: var(--ink); break-inside: avoid; }
+.sh-trap b { color: #e11d48; }
+.sheet-foot { text-align: center; padding: 6px 0 30px; font-size: .9rem; }
+
+/* Mode « Page » : la feuille entière en 3 colonnes, réduite pour tenir dans l'écran (zoom possible) */
+.sheet-wrap.mode-page .sheet { width: 1120px; font-size: 13px; columns: 3; column-gap: 22px; column-rule: 1px solid #e5e7eb; }
+
+/* Mode « Lecture » : même style, texte à taille normale, colonnes selon la largeur */
+.sheet-wrap.mode-read .sheet { max-width: 1180px; font-size: 15px; columns: 3 300px; column-gap: 24px; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .sheet-wrap.mode-read .sheet { --ink: var(--text); background: var(--surface); }
+  :root:not([data-theme='light']) .sheet-wrap.mode-read .sh-trap { background: color-mix(in srgb, #e11d48 12%, transparent); }
+}
+:root[data-theme='dark'] .sheet-wrap.mode-read .sheet { --ink: var(--text); background: var(--surface); }
+:root[data-theme='dark'] .sheet-wrap.mode-read .sh-trap { background: color-mix(in srgb, #e11d48 12%, transparent); }
+
+/* Impression / « Enregistrer en PDF » */
+@media print {
+  .no-print, .sidebar, .topbar, .mini-timer, #toast-root { display: none !important; }
+  body, .sheet-view { background: #fff !important; }
+  .view { padding: 0 !important; }
+  .sheet-wrap { padding: 0; }
+  .sheet { width: auto !important; zoom: 1 !important; box-shadow: none; padding: 0; font-size: 10.5px !important; columns: 3 !important; }
+  @page { size: A4; margin: 10mm; }
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .sheet-wrap.mode-read .sh-title { color: #93c5fd; }
+  :root:not([data-theme='light']) .sheet-wrap.mode-read .sh-body h3 { color: color-mix(in srgb, var(--fc) 45%, #fff); }
+}
+:root[data-theme='dark'] .sheet-wrap.mode-read .sh-title { color: #93c5fd; }
+:root[data-theme='dark'] .sheet-wrap.mode-read .sh-body h3 { color: color-mix(in srgb, var(--fc) 45%, #fff); }

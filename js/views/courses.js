@@ -339,6 +339,7 @@ export function courseView(el, { params: [id] }) {
         <button class="btn sm" data-act="gen">${icon('zap', 16)} Générer les flashcards <span class="pill">${detected}</span></button>
         ${n ? `<a class="btn sm" href="#/reviser/${deck.id}">${icon('cards', 16)} Réviser (${n})</a><a class="btn sm ghost" href="#/flashcards/${deck.id}">Gérer les cartes</a>` : ''}
         <span class="spacer"></span>
+        ${n ? `<a class="btn sm" href="#/feuille/${deck.id}">⛶ Fiche complète</a>` : ''}
         <button class="btn sm ghost" data-act="attach">${icon('clip', 16)} Joindre</button>
         <button class="btn sm ghost" data-act="export" title="Exporter en Markdown">${icon('download', 16)}</button>
         <button class="btn sm ghost danger-txt" data-act="delete" title="Supprimer">${icon('trash', 16)}</button>

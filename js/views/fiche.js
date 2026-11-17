@@ -45,7 +45,7 @@ export default function ficheView(el, { params: [id], query }) {
         <button class="ff-btn" data-act="close" title="Fermer (Échap)">${icon('x', 20)}</button>
         <span class="ff-title">${esc(deck?.name || '')}${all ? '' : ` · ${idx + 1}/${list.length}`}</span>
         ${all ? '' : `<button class="ff-btn" ${prev ? `data-go="${prev.id}"` : 'disabled'} title="Fiche précédente (←)">‹</button><button class="ff-btn" ${next ? `data-go="${next.id}"` : 'disabled'} title="Fiche suivante (→)">›</button>`}
-        <button class="ff-btn wide" data-go="${id}${all ? '' : '?all=1'}">${all ? 'Une fiche' : 'Tout le paquet'}</button>
+        <a class="ff-btn wide" href="#/feuille/${card.deckId}">Fiche complète</a>
         ${document.fullscreenEnabled ? `<button class="ff-btn" data-act="fs" title="Plein écran">⛶</button>` : ''}
       </div>
       <div class="ff-page">${(all ? list : [card]).map((c) => cardFace(c)).join('')}</div>

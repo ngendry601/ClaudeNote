@@ -34,7 +34,8 @@ export function decksList(el) {
                   <div class="mini-bar" title="${pct}% de cartes maîtrisées (intervalle ≥ 21 j)"><i style="width:${pct}%"></i></div>
                   <div class="deck-actions">
                     ${due ? `<a class="btn sm primary" href="#/reviser/${d.id}">Réviser</a>` : cards.length ? `<a class="btn sm" href="#/reviser/${d.id}?libre=1">Entraînement libre</a>` : ''}
-                    <a class="btn sm ghost" href="#/flashcards/${d.id}">Gérer</a></div></div>`;
+                    <a class="btn sm ghost" href="#/flashcards/${d.id}">Gérer</a>
+                    ${cards.length ? `<a class="btn sm ghost" href="#/feuille/${d.id}" title="Tout le cours sur une page, en plein écran">⛶ Fiche complète</a>` : ''}</div></div>`;
               })
               .join('')}</div>`
           : `<div class="empty">${icon('cards', 40)}<h3>Aucun paquet</h3><p>Crée un paquet, ou génère des cartes automatiquement depuis un cours.</p><button class="btn primary" data-act="new">${icon('plus')} Nouveau paquet</button></div>`
@@ -175,6 +176,7 @@ export function deckView(el, { params: [id] }) {
       <div class="page-head"><div><h1>${esc(deck.name)}</h1><p class="muted">${esc(sub?.name || 'Sans matière')} · ${cards.length} carte${cards.length > 1 ? 's' : ''}${deck.courseId && getCourse(deck.courseId) ? ` · <a href="#/cours/${deck.courseId}">voir le cours</a>` : ''}</p></div>
         <div class="head-actions">
           ${due ? `<a class="btn primary" href="#/reviser/${deck.id}">${icon('zap')} Réviser (${due})</a>` : cards.length ? `<a class="btn" href="#/reviser/${deck.id}?libre=1">Entraînement libre</a>` : ''}
+          ${cards.length ? `<a class="btn ghost" href="#/feuille/${deck.id}">⛶ Fiche complète</a>` : ''}
           <button class="btn ghost" data-act="import">${icon('upload', 16)} Importer</button>
           <button class="btn ghost" data-act="rename">${icon('edit', 16)}</button>
           <button class="btn ghost danger-txt" data-act="delete">${icon('trash', 16)}</button></div></div>
