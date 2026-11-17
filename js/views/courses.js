@@ -74,15 +74,15 @@ async function manageSubjects(onDone) {
 }
 
 /* ---------- Création depuis des photos ---------- */
-function photosModal(subjectId = '') {
+export function photosModal(subjectId = '') {
   const hasKey = !!state.settings.apiKey?.trim();
   const subjOpts = `<option value="">Sans matière</option>${state.subjects.map((s) => `<option value="${s.id}" ${s.id === subjectId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}`;
   openModal(
     `<h3>📸 Nouveau cours depuis tes photos</h3>
      <p class="muted small">Claude lit tes photos ou ton PDF et crée une fiche synthétique de ${MAX_CARDS} flashcards maximum, dans le même style que la CEJM.</p>
-     <div class="seg" data-tabs><button class="${hasKey ? 'on' : ''}" data-tab="auto">⚡ Automatique</button><button class="${hasKey ? '' : 'on'}" data-tab="manual">💬 Via l'appli Claude</button></div>
+     <div class="seg" data-tabs><button class="on" data-tab="auto">⚡ Tout dans l'appli</button><button data-tab="manual">💬 Via l'appli Claude</button></div>
 
-     <div data-pane="auto" ${hasKey ? '' : 'hidden'}>
+     <div data-pane="auto">
        ${
          hasKey
            ? `<label class="drop"><input type="file" accept="image/*,application/pdf" multiple data-files><span>📷 Prendre ou choisir des photos (ou un PDF)</span></label>
@@ -91,11 +91,21 @@ function photosModal(subjectId = '') {
               <label class="field"><span>Précision (optionnel)</span><input data-hint placeholder="Ex : chapitre 4, les jointures SQL"></label>
               <p class="gen-status" data-status hidden></p>
               <div class="modal-actions"><button class="btn ghost" data-close>Annuler</button><button class="btn primary" data-gen disabled>Créer la fiche</button></div>`
-           : `<p>Pour la création automatique, ajoute une clé API Claude dans <a href="#/reglages" data-close>Réglages → Génération par IA</a> (payant à l'usage, quelques centimes par cours). Sinon, utilise l'onglet « Via l'appli Claude », gratuit avec ton compte Claude.</p>`
+           : `<div class="key-setup">
+                <p><b>Une seule fois :</b> colle ta clé API Claude. Ensuite tu prends tes photos et l'appli crée tout, sans quitter ClaudeNote.</p>
+                <ol class="steps small">
+                  <li>Ouvre <a href="https://platform.claude.com/" target="_blank" rel="noopener">platform.claude.com</a> et connecte-toi</li>
+                  <li>Ajoute un peu de crédit (Billing) : compte environ 10 à 15 centimes par cours</li>
+                  <li>API Keys → <b>Create Key</b> → copie la clé (sk-ant-…)</li>
+                </ol>
+                <label class="field"><span>Ta clé API</span><input type="password" data-newkey autocomplete="off" placeholder="sk-ant-…"></label>
+                <div class="modal-actions"><button class="btn primary" data-savekey>Enregistrer et continuer</button></div>
+                <p class="muted small">C'est un compte différent de ton abonnement Claude, payé à l'usage. La clé reste uniquement sur ce téléphone.</p>
+              </div>`
        }
      </div>
 
-     <div data-pane="manual" ${hasKey ? 'hidden' : ''}>
+     <div data-pane="manual" hidden>
        <ol class="steps">
          <li><button class="btn sm primary" data-copy>Copier les instructions</button></li>
          <li>Ouvre <a href="https://claude.ai/new" target="_blank" rel="noopener">Claude</a>, colle les instructions et ajoute tes photos</li>
@@ -115,6 +125,16 @@ function photosModal(subjectId = '') {
           location.hash = `#/cours/${r.course.id}`;
         };
         m.addEventListener('click', async (e) => {
+          if (e.target.closest('[data-savekey]')) {
+            const k = $('[data-newkey]', m).value.trim();
+            if (!/^sk-ant-/.test(k)) return toast('La clé doit commencer par sk-ant-', 'error');
+            state.settings.apiKey = k;
+            save();
+            close();
+            toast('Clé enregistrée ✅', 'success');
+            photosModal(subjectId); // on rouvre directement sur la prise de photos
+            return;
+          }
           const tab = e.target.closest('[data-tab]');
           if (tab) {
             $$('[data-tab]', m).forEach((b) => b.classList.toggle('on', b === tab));

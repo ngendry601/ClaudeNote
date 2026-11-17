@@ -534,3 +534,4 @@ input[type='checkbox'], input[type='radio'] { width: auto; accent-color: var(--p
 .drop input { display: none; }
 .gen-status { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; font-weight: 600; }
 [data-tabs] { margin: 6px 0 12px; }
+.key-setup .steps { margin: 8px 0; }

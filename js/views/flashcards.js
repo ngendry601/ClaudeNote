@@ -3,6 +3,7 @@ import { esc, icon, relTime, formModal, confirmBox, openModal, toast, $ } from '
 import { inline, sectionColor } from '../md.js';
 import { cardFace, cardColor, allSections } from '../cardview.js';
 import { PACKS, importPack, packInstalled } from '../packs.js';
+import { photosModal } from './courses.js';
 
 const subjectOptions = () => [{ value: '', label: 'Sans matière' }, ...state.subjects.map((s) => ({ value: s.id, label: s.name }))];
 
@@ -14,6 +15,7 @@ export function decksList(el) {
     el.innerHTML = `
       <div class="page-head"><h1>Flashcards</h1>
         <div class="head-actions"><button class="btn ghost" data-act="new">${icon('plus')} Nouveau paquet</button>
+        <button class="btn" data-act="photos">📸 Depuis mes photos</button>
         ${totalDue ? `<a class="btn primary" href="#/reviser/all">${icon('zap')} Tout réviser (${totalDue})</a>` : ''}</div></div>
       ${
         decks.length
@@ -57,6 +59,7 @@ export function decksList(el) {
       }
       return;
     }
+    if (e.target.closest('[data-act="photos"]')) return photosModal();
     if (e.target.closest('[data-act="new"]')) {
       const v = await formModal('Nouveau paquet', [
         { name: 'name', label: 'Nom', required: true, placeholder: 'Ex : Commandes Linux' },
