@@ -7,7 +7,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import webpush from 'web-push';
-import { DEFAULT_SOURCES } from '../js/sources.js';
+import { DEFAULT_SOURCES, classify } from '../js/sources.js';
 
 const OUT = process.env.OUT_DIR || '_site';
 const SITE = (process.env.SITE_URL || '').replace(/\/$/, '');
@@ -113,7 +113,9 @@ async function main() {
     try {
       const items = await fetchSource(src);
       log(`${src.name} : ${items.length} articles`);
-      if (!wanted || wanted.has(src.id)) all.push(...items);
+      // seuls les articles sécurité / IA sont gardés (même filtre que l'appli)
+      const relevant = items.filter((i) => classify(i, src).length).map((i) => ({ ...i, always: !!src.alwaysNotify }));
+      if (!wanted || wanted.has(src.id)) all.push(...relevant);
     } catch (e) {
       log(`${src.name} : échec (${e.message})`);
     }
@@ -137,10 +139,11 @@ async function main() {
 
     // Alertes de veille (mots-clés)
     const kws = cfg.keywords || [];
-    const alerts = kws.length ? fresh.map((i) => ({ ...i, kw: matches(i, kws) })).filter((i) => i.kw.length) : [];
+    // alerte = article d'une source critique (CERT-FR Alertes) ou qui contient un de tes mots-clés
+    const alerts = fresh.map((i) => ({ ...i, kw: kws.length ? matches(i, kws) : [] })).filter((i) => i.always || i.kw.length);
     if (alerts.length === 1) {
       const a = alerts[0];
-      await send({ type: 'news', title: `🔔 ${a.kw.join(', ')} — ${a.source}`, body: a.title, url: a.url, tag: 'news-' + a.id.slice(-40) });
+      await send({ type: 'news', title: `${a.always ? '🚨' : '🔔'} ${a.kw.length ? a.kw.join(', ') : 'Alerte sécurité'} — ${a.source}`, body: a.title, url: a.url, tag: 'news-' + a.id.slice(-40) });
     } else if (alerts.length > 1) {
       await send({
         type: 'news',

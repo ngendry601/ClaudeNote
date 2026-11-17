@@ -53,7 +53,18 @@ export function parseCardBlock(lines) {
   return { back: back.join('\n').trim(), trap: traps.join(' ') };
 }
 
+/** Une carte « fiche » contient des sous-titres ### : elle se lit comme une fiche de révision */
+export const isFiche = (back = '') => /^###\s/m.test(back);
+export const ficheTopics = (back = '') => [...back.matchAll(/^###\s+(.+)$/gm)].map((m) => m[1].trim());
+
+export function ficheHtml(title, back, trap, color) {
+  return `<section class="fiche" style="--fc:${color}"><h2 class="fiche-head">${inline(title)}</h2><div class="fiche-body md">${md(back)}</div>${
+    trap ? `<div class="fc-trap"><b>⚠️ Piège</b> ${inline(trap)}</div>` : ''
+  }</section>`;
+}
+
 export function cardBlockHtml(front, back, trap, color) {
+  if (isFiche(back)) return ficheHtml(front, back, trap, color);
   return `<div class="fc-block" style="--fc:${color}"><div class="fc-q">${inline(front)}</div><div class="fc-a md">${md(back)}</div>${
     trap ? `<div class="fc-trap"><b>⚠️ Piège</b> ${inline(trap)}</div>` : ''
   }</div>`;
@@ -82,7 +93,7 @@ export function md(src = '') {
       while (i < lines.length && !/^:::\s*$/.test(lines[i])) buf.push(lines[i++]);
       i++;
       const { back, trap } = parseCardBlock(buf);
-      out.push(cardBlockHtml(m[1].trim(), back, trap, sectionColor(section)));
+      out.push(cardBlockHtml(m[1].trim(), back, trap, sectionColor(section || m[1])));
       continue;
     }
     if (/^```/.test(l)) {
@@ -99,7 +110,7 @@ export function md(src = '') {
       if (n === 2) {
         section = cleanSection(m[2]);
         out.push(`<h2 class="sec" style="--fc:${sectionColor(section)}">${inline(m[2])}</h2>`);
-      } else if (n === 3) out.push(`<h3 class="sub" style="--fc:${sectionColor(section)}">${inline(m[2])}</h3>`);
+      } else if (n === 3) out.push(`<h3 class="sub"${section ? ` style="--fc:${sectionColor(section)}"` : ''}>${inline(m[2])}</h3>`);
       else out.push(`<h${n}>${inline(m[2])}</h${n}>`);
       i++;
       continue;

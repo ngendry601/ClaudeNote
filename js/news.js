@@ -1,5 +1,6 @@
-// Service de veille technologique : récupère HN, DEV et des flux RSS, détecte les nouveautés et notifie.
+// Service de veille : failles / mises à jour de sécurité et actu IA. Récupère les flux, filtre, détecte les nouveautés et notifie.
 import { state, save } from './store.js';
+import { classify } from './sources.js';
 import { notify } from './notify.js';
 
 const MAX_ITEMS = 500;
@@ -114,8 +115,10 @@ export function refreshNews({ silent = false } = {}) {
       }
       for (const it of r.value) {
         if (known.has(it.id)) continue;
+        const topics = classify(it, src);
+        if (!topics.length) continue; // hors sujet (ni sécurité ni IA)
         known.add(it.id);
-        const item = { ...it, fetchedAt: Date.now(), read: false, saved: false };
+        const item = { ...it, topics, fetchedAt: Date.now(), read: false, saved: false };
         n.items.push(item);
         added.push(item);
       }
@@ -130,13 +133,15 @@ export function refreshNews({ silent = false } = {}) {
     save();
 
     if (!firstFetch && !silent && n.notify && added.length) {
-      const alerts = added.filter((i) => matchesKeywords(i).length);
+      const always = new Set(n.sources.filter((s) => s.alwaysNotify).map((s) => s.id));
+      const alerts = added.filter((i) => always.has(i.sourceId) || matchesKeywords(i).length);
       if (alerts.length === 1) {
-        await notify(`🔔 ${matchesKeywords(alerts[0]).join(', ')}`, alerts[0].title, '#/veille?f=alerts', 'news-alert');
+        const kw = matchesKeywords(alerts[0]);
+        await notify(`🔔 ${kw.length ? kw.join(', ') : 'Alerte sécurité'}`, alerts[0].title, '#/veille?f=alerts', 'news-alert');
       } else if (alerts.length > 1) {
         await notify(`🔔 ${alerts.length} actus correspondent à tes alertes`, alerts.slice(0, 3).map((a) => '• ' + a.title).join('\n'), '#/veille?f=alerts', 'news-alert');
       } else if (!n.keywords.length) {
-        await notify(`📰 ${added.length} nouvelles actus tech`, added.slice(0, 3).map((a) => '• ' + a.title).join('\n'), '#/veille', 'news');
+        await notify(`📰 ${added.length} nouvelles actus sécu / IA`, added.slice(0, 3).map((a) => '• ' + a.title).join('\n'), '#/veille', 'news');
       }
     }
     return { added: added.length, errors: Object.keys(n.errors).length };

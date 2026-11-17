@@ -1,5 +1,5 @@
 import { load, state, onChange } from './store.js';
-import { icon, $, $$ } from './ui.js';
+import { icon, toast, $, $$ } from './ui.js';
 import { applyTheme } from './theme.js';
 import { startAutoRefresh, unreadFresh } from './news.js';
 import { timer, onTick, setMode, fmt, MODES } from './timer.js';
@@ -12,7 +12,7 @@ import pomodoroView from './views/pomodoro.js';
 import settingsView from './views/settings.js';
 import searchView from './views/search.js';
 import quizView from './views/quiz.js';
-import { importPack } from './packs.js';
+import { importPack, outdatedPacks } from './packs.js';
 
 const NAV = [
   { href: '#/', label: 'Accueil', icon: 'home', match: /^\/$/ },
@@ -121,6 +121,14 @@ async function init() {
   const firstRun = await load();
   applyTheme();
   if (firstRun) await importPack('cejm').catch((e) => console.warn('Paquet CEJM', e));
+  for (const p of outdatedPacks()) {
+    try {
+      const r = await importPack(p.id);
+      setTimeout(() => toast(`« ${p.title} » mis à jour : ${r.added + r.updated} fiches`, 'success'), 800);
+    } catch (e) {
+      console.warn('Mise à jour du paquet', p.id, e);
+    }
+  }
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
   buildNav();
   setupSearch();

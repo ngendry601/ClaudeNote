@@ -32,47 +32,40 @@ Ensuite, sur le téléphone :
 - **Pièces jointes** (PDF, images, slides…) stockées en local
 - Enregistrement automatique, export `.md`, raccourcis `Ctrl+S`, `Ctrl+B` et `Ctrl+I`
 
-### ⚡ Flashcards (style fiche de révision)
-- Bandeau coloré par thème, **mots-clés en gras**, l'essentiel ==surligné==, encadré **⚠️ Piège**
-- **Paquet CEJM BTS SIO prêt à l'emploi** (132 cartes : méthodes, économie, droit, management, auteurs, articles, pièges), installé au premier lancement
-- **Carte riche** dans un cours :
+### ⚡ Flashcards = fiches de révision (3 à 5 par cours)
+- Chaque flashcard est une **fiche à réciter**, comme une fiche papier : bandeau coloré, sous-parties en couleur, **notions en gras**, l'essentiel ==surligné==, encadré **⚠️ Piège**
+- Recto : la liste des sous-parties à réciter · verso : la fiche complète · répétition espacée (À revoir / Difficile / Bien / Facile)
+- **Paquet CEJM BTS SIO SLAM** : 5 fiches (méthodes, économie, droit, management, pièges et auteurs), installé au premier lancement
+- Format d'une fiche dans un cours :
   ```
-  ::: Vices du consentement (art. 1130)
-  - **Erreur** : sur les qualités essentielles, excusable
-  - **Dol** (1137) : manœuvres, mensonge… déterminant
-  - **Violence** : y compris ==abus de dépendance économique==
-  !! Dol = nullité, pas résolution.
+  ::: Droit
+  ### Contrat
+  - **Validité (1128)** : ==consentement, capacité, contenu licite et certain==
+  - **Nullité** : défaut de formation → le contrat n'a jamais existé
+  !! Nullité (formation) ≠ résolution (exécution)
   :::
   ```
-  La section (titre `##`) donne la couleur du bandeau.
-- **Génération automatique depuis tes cours**, avec d'autres formats possibles
-  ```
-  Quelle couche gère le routage ? :: La couche 3 (Réseau)
+- Les formats courts restent possibles (`question :: réponse`)
 
-  Q : Port HTTPS par défaut ?
-  R : 443
-
-  - **DNS** : traduit un nom de domaine en adresse IP
-  ```
-  puis clique sur **Générer les flashcards**. Les doublons sont détectés.
-- **Répétition espacée** (algorithme de type SM-2, comme Anki) : À revoir, Difficile, Bien, Facile
-- Raccourcis clavier pendant la révision : `Espace` pour retourner la carte, `1` à `4` pour noter
-- Mode **entraînement libre**, qui ne modifie pas le planning
-- Import en masse (copier-coller depuis Excel ou Anki : `question :: réponse`, tabulation ou `;`)
+### 📸 Nouveau cours depuis des photos
+Cours → **📸 Depuis mes photos** : Claude lit tes photos (ou un PDF) et crée le cours + 3 à 5 fiches dans ce format.
+- **Automatique** : avec une clé API Claude (Réglages → Génération par IA). Payant à l'usage, quelques centimes par cours. La clé reste sur l'appareil.
+- **Via l'appli Claude** (gratuit avec ton compte) : copie les instructions, colle-les dans Claude avec tes photos, puis colle la réponse dans l'appli.
 
 ### ❓ Quiz
+- **Une question par notion en gras** de tes fiches (82 questions pour la CEJM)
 - **QCM** (avec des réponses pièges tirées du même thème), **vrai / faux**, **réponse écrite** (tolère les fautes de frappe et les accents), ou un mélange des trois
 - Par paquet, par thème (Droit, Économie…) ou sur **tes erreurs**
 - Correction détaillée après chaque question, historique des scores
 - Les questions ratées repassent automatiquement en révision
 
-### 🔔 Veille techno et notifications
-- Sources par défaut : Hacker News, DEV, Korben, Next, CERT-FR (alertes de sécurité). Le Monde Informatique, Numerama, ZDNet et Lobsters sont désactivées par défaut et s'activent dans les Réglages.
-- **Ajout de n'importe quel flux RSS ou Atom**
-- **Mots-clés d'alerte** (ex. `CVE`, `Rust`, `ransomware`) : notification système quand une actu correspond
-- Badge du nombre de non-lus, favoris, filtres, recherche
-- Bouton 📝 pour envoyer un article dans ta note « Ma veille techno »
-- Actualisation automatique (10 min à 6 h)
+### 🛡️🤖 Veille sécurité & IA
+- Centrée sur **les failles et mises à jour de sécurité** et sur **l'actu IA** ; tout le reste est filtré
+- Sécurité : CERT-FR (alertes + avis de vulnérabilité), Le Monde Informatique Sécurité, Numerama Cyberguerre (+ ZATAZ, BleepingComputer, The Hacker News activables)
+- IA : Le Monde Informatique IA, ActuIA, Blog du Modérateur IA
+- Next et Korben gardés mais **filtrés** (seulement les articles sécu / IA)
+- Onglets 🛡️ Failles & MAJ · 🤖 IA · 🔔 Alertes · ★ Favoris
+- **Notification** pour chaque alerte CERT-FR et pour chaque actu contenant un de tes mots-clés (critique, zero-day, Windows, OpenAI…)
 
 ### 🎁 Fonctionnalités en plus
 - **Tableau de bord** : cartes à réviser, série de jours, objectif quotidien, carte d'activité façon GitHub
@@ -92,6 +85,8 @@ js/store.js         état et persistance (IndexedDB)
 js/srs.js           répétition espacée et extraction de flashcards
 js/cardview.js      rendu des cartes « fiche de révision »
 js/packs.js         paquets prêts à l'emploi (data/cejm.md)
+js/ai.js            création d'un cours depuis des photos (API Claude)
+js/sources.js       sources de veille et filtre sécurité / IA
 js/push.js          abonnement aux notifications push
 js/md.js            moteur Markdown sécurisé
 js/news.js          récupération HN / DEV / RSS et alertes
@@ -108,8 +103,6 @@ scripts/veille.mjs  robot GitHub Actions : flux de veille et notifications push
 - Les données sont liées au navigateur : **exporte régulièrement** (Réglages → Sauvegarde).
 
 ## 💡 Idées pour la suite
-- Génération de flashcards et de quiz **par IA** à partir d'un cours ou d'un PDF
 - Synchronisation entre appareils (compte et backend)
-- Import de PDF avec extraction du texte
 - Cartes à trous (cloze), cartes avec images
 - Statistiques détaillées par matière, prévision de la charge de révision

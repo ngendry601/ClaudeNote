@@ -2,8 +2,10 @@ import { state, save, uid } from '../store.js';
 import { esc, icon, relTime, toast, $ } from '../ui.js';
 import { refreshNews, isRefreshing, matchesKeywords } from '../news.js';
 import { askPermission, notifPermission } from '../notify.js';
+import { TOPICS } from '../sources.js';
 
 const NOTE_TITLE = '📰 Ma veille techno';
+// (filtre « Non lus » regroupé dans « Tout » : les articles lus sont grisés)
 
 export default function newsView(el, { query }, { updateBadge }) {
   const n = state.news;
@@ -17,12 +19,14 @@ export default function newsView(el, { query }, { updateBadge }) {
   let q = '';
   let limit = 40;
   const srcOf = (id) => n.sources.find((s) => s.id === id) || { name: id, color: '#64748b' };
+  const isAlert = (i) => !!srcOf(i.sourceId).alwaysNotify || matchesKeywords(i).length > 0;
 
   function filtered() {
     return n.items.filter((i) => {
       if (tab === 'unread' && i.read) return false;
       if (tab === 'saved' && !i.saved) return false;
-      if (tab === 'alerts' && !matchesKeywords(i).length) return false;
+      if (tab === 'alerts' && !isAlert(i)) return false;
+      if ((tab === 'secu' || tab === 'ia') && !(i.topics || []).includes(tab)) return false;
       if (source && i.sourceId !== source) return false;
       if (q && !(i.title + ' ' + (i.summary || '')).toLowerCase().includes(q)) return false;
       return true;
@@ -36,6 +40,7 @@ export default function newsView(el, { query }, { updateBadge }) {
     return `<article class="news-item ${i.read ? 'read' : ''} ${kws.length ? 'alert' : ''}" data-id="${esc(i.id)}">
       <div class="ni-meta"><span class="src" style="--c:${s.color}">${esc(s.name)}</span><time>${relTime(i.date)}</time>
         ${i.score ? `<span>▲ ${i.score}</span>` : ''}${fresh && !i.read ? '<span class="pill new">nouveau</span>' : ''}
+        ${(i.topics || []).map((t) => `<span class="pill topic ${t}">${TOPICS[t]?.emoji || ''} ${TOPICS[t]?.label || t}</span>`).join('')}
         ${kws.map((k) => `<span class="pill kw">🔔 ${esc(k)}</span>`).join('')}</div>
       <a class="ni-title" href="${esc(i.url)}" target="_blank" rel="noopener" data-open>${esc(i.title)}</a>
       ${i.summary ? `<p class="ni-sum">${esc(i.summary)}</p>` : ''}
@@ -57,16 +62,18 @@ export default function newsView(el, { query }, { updateBadge }) {
   function draw() {
     const perm = notifPermission();
     const unread = n.items.filter((i) => !i.read).length;
-    const alerts = n.items.filter((i) => !i.read && matchesKeywords(i).length).length;
+    const alerts = n.items.filter((i) => !i.read && isAlert(i)).length;
+    const nSecu = n.items.filter((i) => !i.read && (i.topics || []).includes('secu')).length;
+    const nIa = n.items.filter((i) => !i.read && (i.topics || []).includes('ia')).length;
     const errs = Object.entries(n.errors || {});
     el.innerHTML = `
-      <div class="page-head"><div><h1>Veille techno</h1><p class="muted">${n.lastFetch ? `Mis à jour ${relTime(n.lastFetch)}` : 'Jamais actualisé'} · actualisation auto toutes les ${n.interval} min</p></div>
+      <div class="page-head"><div><h1>Veille sécu & IA</h1><p class="muted">${n.lastFetch ? `Mis à jour ${relTime(n.lastFetch)}` : 'Jamais actualisé'} · actualisation auto toutes les ${n.interval} min</p></div>
         <div class="head-actions"><button class="btn ghost" data-act="readall">${icon('check', 16)} Tout marquer lu</button>
         <button class="btn primary" data-act="refresh" ${isRefreshing() ? 'disabled' : ''}>${icon('refresh', 16)} ${isRefreshing() ? 'Chargement…' : 'Actualiser'}</button></div></div>
 
       ${
         perm !== 'granted' || !n.notify
-          ? `<div class="banner">${icon('bell')}<div><b>Active les notifications</b><p>Reçois une alerte quand une actu correspond à tes mots-clés${perm === 'denied' ? ' (bloquées dans ton navigateur : autorise-les dans les paramètres du site)' : ''}.</p></div>
+          ? `<div class="banner">${icon('bell')}<div><b>Active les notifications</b><p>Reçois une alerte pour chaque alerte CERT-FR et quand une actu correspond à tes mots-clés${perm === 'denied' ? ' (bloquées dans ton navigateur : autorise-les dans les paramètres du site)' : ''}.</p></div>
             ${perm !== 'denied' && perm !== 'unsupported' ? `<button class="btn primary sm" data-act="notif">Activer</button>` : ''}</div>`
           : ''
       }
@@ -76,7 +83,7 @@ export default function newsView(el, { query }, { updateBadge }) {
         <form data-kwform class="kw-form"><input name="kw" placeholder="+ mot-clé (ex : Rust, ransomware)" maxlength="40"></form></div>
 
       <div class="filter-bar">
-        <div class="seg">${[['all', `Tout`], ['unread', `Non lus (${unread})`], ['alerts', `🔔 Alertes (${alerts})`], ['saved', '★ Favoris']]
+        <div class="seg">${[['all', `Tout (${unread})`], ['secu', `🛡️ Failles & MAJ (${nSecu})`], ['ia', `🤖 IA (${nIa})`], ['alerts', `🔔 Alertes (${alerts})`], ['saved', '★ Favoris']]
           .map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-tab="${k}">${l}</button>`)
           .join('')}</div>
         <select data-src><option value="">Toutes les sources</option>${n.sources.filter((s) => s.enabled).map((s) => `<option value="${s.id}" ${source === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>

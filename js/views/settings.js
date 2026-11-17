@@ -79,6 +79,12 @@ export default function settingsView(el) {
 
       ${pushHtml()}
 
+      <section class="panel"><h2>🤖 Génération par IA</h2>
+        <p>Pour créer un cours et ses flashcards <b>automatiquement</b> depuis tes photos (Cours → 📸 Depuis mes photos), colle ici une clé API Claude.</p>
+        <label class="field"><span>Clé API Claude</span><input type="password" data-apikey autocomplete="off" placeholder="sk-ant-…" value="${esc(state.settings.apiKey || '')}"></label>
+        <p class="muted small">Crée-la sur <a href="https://platform.claude.com/" target="_blank" rel="noopener">platform.claude.com</a> (rubrique API Keys). C'est payant à l'usage, en général quelques centimes par cours. La clé reste uniquement sur cet appareil et n'est pas incluse dans les exports. Sans clé, l'option « Via l'appli Claude » reste gratuite avec ton compte Claude.</p>
+      </section>
+
       <section class="panel"><h2>${icon('download')} Sauvegarde</h2>
         <p class="muted">Tes données sont stockées uniquement dans ce navigateur. Pense à exporter régulièrement (ou pour les transférer sur un autre appareil).</p>
         <div class="row-set">
@@ -162,7 +168,7 @@ export default function settingsView(el) {
         const b = await files.get(k);
         if (b) fileData.push({ id: k, data: await blobToB64(b) });
       }
-      const payload = { app: 'ClaudeNote', exportedAt: Date.now(), state: { ...state, news: { ...state.news, items: state.news.items.filter((i) => i.saved) } }, files: fileData };
+      const payload = { app: 'ClaudeNote', exportedAt: Date.now(), state: { ...state, settings: { ...state.settings, apiKey: '' }, news: { ...state.news, items: state.news.items.filter((i) => i.saved) } }, files: fileData };
       download(`claudenote-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(payload), 'application/json');
       toast('Export téléchargé', 'success');
     }
@@ -181,6 +187,11 @@ export default function settingsView(el) {
       save();
       draw();
       toast("Pense à recopier le code dans le secret GitHub");
+    }
+    if (t.matches('[data-apikey]')) {
+      state.settings.apiKey = t.value.trim();
+      save();
+      toast(state.settings.apiKey ? 'Clé enregistrée sur cet appareil' : 'Clé supprimée');
     }
     if (t.matches('[data-goal]')) {
       state.settings.dailyGoal = Math.max(1, +t.value || 30);

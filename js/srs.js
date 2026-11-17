@@ -64,7 +64,7 @@ export function extractCards(text) {
   let section = '';
   let sub = '';
   const clean = (s) => s.trim().replace(/^[-*+]\s+/, '').trim();
-  const meta = () => ({ section, sub, color: sectionColor(section) });
+  const meta = (front = '') => ({ section, sub, color: sectionColor(section || front) });
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
     if (/^\s*```/.test(l)) {
@@ -85,7 +85,7 @@ export function extractCards(text) {
       i++;
       while (i < lines.length && !/^:::\s*$/.test(lines[i])) buf.push(lines[i++]);
       const { back, trap } = parseCardBlock(buf);
-      if (back) out.push({ front: m[1].trim(), back, trap, ...meta() });
+      if (back) out.push({ front: m[1].trim(), back, trap, ...meta(m[1]) });
       continue;
     }
     if ((m = l.match(/^\s*(?:[-*+]\s+|\d+[.)]\s+)?(.+?)\s*::\s*(.+)$/))) {
@@ -101,6 +101,29 @@ export function extractCards(text) {
     }
   }
   return out;
+}
+
+/**
+ * Faits élémentaires d'une carte, pour le quiz : chaque puce « **Notion** : explication »
+ * devient une question. Les cartes simples donnent un seul fait (recto → verso).
+ */
+export function extractFacts(card) {
+  const facts = [];
+  let topic = '';
+  for (const raw of card.back.split('\n')) {
+    const h = raw.match(/^###\s+(.+)$/);
+    if (h) {
+      topic = h[1].trim();
+      continue;
+    }
+    const line = raw.replace(/^\s*(?:[-*+]|\d+[.)])\s+/, '').trim();
+    for (const seg of line.split(/\s+·\s+(?=\*\*)/)) {
+      const m = seg.match(/^\*\*(.+?)\*\*\s*(\([^)]*\))?\s*[:=]\s*(.+)$/);
+      if (m && m[3].replace(/[=*\s]/g, '').length > 1) facts.push({ q: `${m[1]}${m[2] ? ' ' + m[2] : ''}`.trim(), a: m[3].trim(), topic });
+    }
+  }
+  if (!facts.length) facts.push({ q: card.front, a: card.back, topic: card.sub || '' });
+  return facts;
 }
 
 export function shuffle(arr) {

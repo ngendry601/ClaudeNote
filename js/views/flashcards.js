@@ -49,7 +49,7 @@ export function decksList(el) {
       pk.disabled = true;
       try {
         const r = await importPack(pk.dataset.pack);
-        toast(`${r.added} carte(s) ajoutée(s), ${r.updated} mise(s) à jour`, 'success');
+        toast(`${r.added} ajoutée(s), ${r.updated} mise(s) à jour${r.removed ? `, ${r.removed} retirée(s)` : ''}`, 'success');
         draw();
       } catch (err) {
         toast('Import impossible (hors ligne ?)', 'error');

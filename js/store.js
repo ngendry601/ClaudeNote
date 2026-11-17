@@ -14,7 +14,9 @@ export function startOfDay(ts = Date.now()) {
 }
 
 export { DEFAULT_SOURCES } from './sources.js';
-import { DEFAULT_SOURCES } from './sources.js';
+import { DEFAULT_SOURCES, DEFAULT_KEYWORDS } from './sources.js';
+
+export const STATE_VERSION = 2;
 
 export const DEFAULT_PROXIES = [
   'proxy?url=', // fourni par server.js (le plus fiable)
@@ -24,7 +26,8 @@ export const DEFAULT_PROXIES = [
 
 function defaults() {
   return {
-    version: 1,
+    version: STATE_VERSION,
+    packVersions: {},
     subjects: [],
     courses: [],
     decks: [],
@@ -40,13 +43,13 @@ function defaults() {
       lastFetch: 0,
       lastVisit: 0,
       sources: DEFAULT_SOURCES.map((s) => ({ ...s })),
-      keywords: ['faille', 'CVE', 'IA', 'Linux', 'Python'],
+      keywords: [...DEFAULT_KEYWORDS],
       notify: false,
       interval: 30,
       proxies: [...DEFAULT_PROXIES],
       errors: {},
     },
-    settings: { theme: 'auto', pomodoro: { work: 25, short: 5, long: 15, every: 4 }, dailyGoal: 30 },
+    settings: { theme: 'auto', pomodoro: { work: 25, short: 5, long: 15, every: 4 }, dailyGoal: 30, apiKey: '' },
   };
 }
 
@@ -69,15 +72,36 @@ export async function load() {
   }
   if (saved) {
     Object.assign(state, mergeDefaults(saved, defaults()));
+    migrate();
     return false;
   }
   await flush();
   return true; // premier lancement
 }
 
+/** Mises à niveau des données d'une version à l'autre */
+function migrate() {
+  const v = state.version || 1;
+  if (v < 2) {
+    // v2 : veille recentrée sur sécurité + IA (nouvelles sources, cache vidé)
+    const n = state.news;
+    const custom = (n.sources || []).filter((s) => s.custom);
+    n.sources = [...DEFAULT_SOURCES.map((s) => ({ ...s })), ...custom];
+    n.items = n.items.filter((i) => i.saved);
+    n.lastFetch = 0;
+    n.errors = {};
+    const oldDefault = ['faille', 'CVE', 'IA', 'Linux', 'Python'];
+    if (n.keywords.length === oldDefault.length && n.keywords.every((k, i) => k === oldDefault[i])) n.keywords = [...DEFAULT_KEYWORDS];
+    // le paquet CEJM installé avant la v2 sera remplacé par la version synthétique
+    if (state.courses.some((c) => c.packId === 'cejm')) state.packVersions.cejm = 1;
+  }
+  state.version = STATE_VERSION;
+}
+
 export function replaceState(newState) {
   for (const k of Object.keys(state)) delete state[k];
   Object.assign(state, mergeDefaults(newState, defaults()));
+  migrate();
 }
 
 export function resetState() {

@@ -3,6 +3,7 @@ import { files } from '../db.js';
 import { esc, icon, relTime, formModal, confirmBox, openModal, toast, download, debounce, fmtSize, $, $$ } from '../ui.js';
 import { md, stripMd } from '../md.js';
 import { extractCards } from '../srs.js';
+import { INSTRUCTIONS, MAX_CARDS, generateFromFiles, importCourseMarkdown } from '../ai.js';
 
 const subjectOptions = (withNone = true) => [
   ...(withNone ? [{ value: '', label: 'Sans matière' }] : []),
@@ -72,6 +73,98 @@ async function manageSubjects(onDone) {
   });
 }
 
+/* ---------- Création depuis des photos ---------- */
+function photosModal(subjectId = '') {
+  const hasKey = !!state.settings.apiKey?.trim();
+  const subjOpts = `<option value="">Sans matière</option>${state.subjects.map((s) => `<option value="${s.id}" ${s.id === subjectId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}`;
+  openModal(
+    `<h3>📸 Nouveau cours depuis tes photos</h3>
+     <p class="muted small">Claude lit tes photos ou ton PDF et crée une fiche synthétique de ${MAX_CARDS} flashcards maximum, dans le même style que la CEJM.</p>
+     <div class="seg" data-tabs><button class="${hasKey ? 'on' : ''}" data-tab="auto">⚡ Automatique</button><button class="${hasKey ? '' : 'on'}" data-tab="manual">💬 Via l'appli Claude</button></div>
+
+     <div data-pane="auto" ${hasKey ? '' : 'hidden'}>
+       ${
+         hasKey
+           ? `<label class="drop"><input type="file" accept="image/*,application/pdf" multiple data-files><span>📷 Prendre ou choisir des photos (ou un PDF)</span></label>
+              <p class="muted small" data-count>Aucun fichier</p>
+              <label class="field"><span>Matière</span><select data-subject>${subjOpts}</select></label>
+              <label class="field"><span>Précision (optionnel)</span><input data-hint placeholder="Ex : chapitre 4, les jointures SQL"></label>
+              <p class="gen-status" data-status hidden></p>
+              <div class="modal-actions"><button class="btn ghost" data-close>Annuler</button><button class="btn primary" data-gen disabled>Créer la fiche</button></div>`
+           : `<p>Pour la création automatique, ajoute une clé API Claude dans <a href="#/reglages" data-close>Réglages → Génération par IA</a> (payant à l'usage, quelques centimes par cours). Sinon, utilise l'onglet « Via l'appli Claude », gratuit avec ton compte Claude.</p>`
+       }
+     </div>
+
+     <div data-pane="manual" ${hasKey ? 'hidden' : ''}>
+       <ol class="steps">
+         <li><button class="btn sm primary" data-copy>Copier les instructions</button></li>
+         <li>Ouvre <a href="https://claude.ai/new" target="_blank" rel="noopener">Claude</a>, colle les instructions et ajoute tes photos</li>
+         <li>Copie la réponse de Claude et colle-la ici :</li>
+       </ol>
+       <textarea rows="7" data-paste placeholder="# Titre du cours&#10;&#10;::: Grand thème&#10;### Sous-partie&#10;- **Notion** : explication&#10;:::"></textarea>
+       <label class="field"><span>Matière</span><select data-subject2>${subjOpts}</select></label>
+       <div class="modal-actions"><button class="btn ghost" data-close>Annuler</button><button class="btn primary" data-import>Créer le cours</button></div>
+     </div>`,
+    {
+      wide: true,
+      onMount: (m, close) => {
+        let picked = [];
+        const finish = (r) => {
+          close();
+          toast(`Cours créé avec ${r.cards} flashcard${r.cards > 1 ? 's' : ''} ✨`, 'success');
+          location.hash = `#/cours/${r.course.id}`;
+        };
+        m.addEventListener('click', async (e) => {
+          const tab = e.target.closest('[data-tab]');
+          if (tab) {
+            $$('[data-tab]', m).forEach((b) => b.classList.toggle('on', b === tab));
+            $$('[data-pane]', m).forEach((p) => (p.hidden = p.dataset.pane !== tab.dataset.tab));
+            return;
+          }
+          if (e.target.closest('[data-copy]')) {
+            try {
+              await navigator.clipboard.writeText(INSTRUCTIONS);
+              toast('Instructions copiées 📋', 'success');
+            } catch {
+              toast('Copie impossible : réessaie', 'error');
+            }
+            return;
+          }
+          if (e.target.closest('[data-import]')) {
+            const txt = $('[data-paste]', m).value.trim();
+            if (!/:::\s+\S/.test(txt)) return toast("Je ne trouve pas de bloc « ::: » : colle toute la réponse de Claude", 'error');
+            finish(importCourseMarkdown(txt, $('[data-subject2]', m).value));
+            return;
+          }
+          const gen = e.target.closest('[data-gen]');
+          if (gen && picked.length) {
+            const status = $('[data-status]', m);
+            gen.disabled = true;
+            status.hidden = false;
+            status.textContent = '⏳ Envoi des documents à Claude…';
+            try {
+              const text = await generateFromFiles(picked, {
+                hint: $('[data-hint]', m).value.trim(),
+                onProgress: (n) => (status.textContent = `✍️ Claude rédige ta fiche… ${n} caractères`),
+              });
+              finish(importCourseMarkdown(text, $('[data-subject]', m).value));
+            } catch (err) {
+              status.textContent = `❌ ${err.message}`;
+              gen.disabled = false;
+            }
+          }
+        });
+        m.addEventListener('change', (e) => {
+          if (!e.target.matches('[data-files]')) return;
+          picked = [...e.target.files];
+          $('[data-count]', m).textContent = picked.length ? `${picked.length} fichier${picked.length > 1 ? 's' : ''} : ${picked.map((f) => f.name).join(', ')}` : 'Aucun fichier';
+          $('[data-gen]', m).disabled = !picked.length;
+        });
+      },
+    },
+  );
+}
+
 export function coursesList(el, { query }) {
   let filter = query.get('s') || '';
   let q = '';
@@ -84,7 +177,8 @@ export function coursesList(el, { query }) {
     el.innerHTML = `
       <div class="page-head"><h1>Mes cours</h1>
         <div class="head-actions"><button class="btn ghost" data-act="subjects">Matières</button>
-        <button class="btn primary" data-act="new">${icon('plus')} Nouveau cours</button></div></div>
+        <button class="btn" data-act="new">${icon('plus')} Nouveau cours</button>
+        <button class="btn primary" data-act="photos">📸 Depuis mes photos</button></div></div>
       <div class="filter-bar">
         <div class="chips">
           <button class="chip ${!filter ? 'on' : ''}" data-f="">Tous <small>${state.courses.length}</small></button>
@@ -120,6 +214,7 @@ export function coursesList(el, { query }) {
     }
     const a = e.target.closest('[data-act]');
     if (a?.dataset.act === 'new') newCourse(filter && filter !== 'none' ? filter : '');
+    if (a?.dataset.act === 'photos') photosModal(filter && filter !== 'none' ? filter : '');
     if (a?.dataset.act === 'subjects') manageSubjects(draw);
   };
   el.oninput = (e) => {
@@ -202,7 +297,8 @@ export function courseView(el, { params: [id] }) {
     return;
   }
   course.attachments ||= [];
-  let mode = localStorage.getItem('cn-editor-mode') || (window.innerWidth > 1100 ? 'split' : 'edit');
+  // Un cours s'ouvre en lecture (mis en forme) ; « Écrire » sert seulement à modifier
+  let mode = course.content.trim().split('\n').length > 2 ? 'read' : window.innerWidth > 1100 ? 'split' : 'edit';
   const blobUrls = [];
 
   const headerHtml = () => {
@@ -326,7 +422,6 @@ export function courseView(el, { params: [id] }) {
     const m = e.target.closest('[data-mode]');
     if (m) {
       mode = m.dataset.mode;
-      localStorage.setItem('cn-editor-mode', mode);
       $('[data-wrap]', el).className = `editor-wrap mode-${mode}`;
       $$('[data-mode]', el).forEach((b) => b.classList.toggle('on', b === m));
       if (mode === 'read') preview.innerHTML = md(editor.value);

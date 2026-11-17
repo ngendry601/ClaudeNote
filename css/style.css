@@ -497,3 +497,40 @@ input[type='checkbox'], input[type='radio'] { width: auto; accent-color: var(--p
   .tf-btns .btn { min-width: 0; flex: 1; }
   .add-more[open] { grid-template-columns: 1fr; }
 }
+
+/* ---------- Fiches (style « fiche de révision » du PDF) ---------- */
+.fiche { border: 1px solid color-mix(in srgb, var(--fc) 35%, var(--border)); border-radius: 10px; overflow: hidden; margin: 14px 0; background: var(--surface); }
+.md h2.fiche-head, .fiche-head { background: var(--fc); color: #fff; margin: 0; padding: 7px 14px; font-size: .95rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; border: 0; border-radius: 0; }
+.fiche-body { padding: 4px 14px 10px; font-size: .9rem; line-height: 1.45; }
+.fiche .fc-trap { margin: 0 14px 12px; }
+.fiche-body h3, .fiche-card .fiche-body h3 { color: var(--fc); font-size: .92rem; font-weight: 800; margin: .9em 0 .25em; break-after: avoid; }
+.fiche-body h3:first-child { margin-top: .5em; }
+.fiche-body ul, .fiche-body ol { margin: .15em 0; padding-left: 1.1em; }
+.fiche-body li { margin: .12em 0; break-inside: avoid; }
+.fiche-body li::marker { color: var(--fc); }
+.fiche-body p { margin: .3em 0; break-inside: avoid; }
+.fiche-body strong { color: var(--text); font-weight: 750; }
+.fiche-body mark { font-weight: 600; }
+@media (min-width: 900px) {
+  .preview .fiche-body, .fiche-card .fiche-body { columns: 2 300px; column-gap: 28px; }
+}
+.fiche-card .fiche-head { display: flex; justify-content: space-between; gap: 10px; padding: 9px 18px; font-size: .9rem; }
+.fiche-card .fiche-head small { font-weight: 600; opacity: .85; text-transform: none; letter-spacing: 0; font-size: .75rem; }
+.fiche-card .fc-body { padding: 10px 18px 16px; }
+.fiche-card .fiche-body { padding: 0; }
+.fc-recite { margin: 8px 0 10px; color: var(--muted); font-weight: 600; }
+.fc-topics { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.fc-topics li { border: 2px solid color-mix(in srgb, var(--fc) 40%, transparent); color: var(--fc); background: color-mix(in srgb, var(--fc) 8%, transparent); border-radius: 99px; padding: 5px 12px; font-weight: 700; font-size: .92rem; }
+.flash-wrap .fiche-card { min-height: 0; }
+
+/* Veille : thèmes */
+.pill.topic { background: var(--surface-2); color: var(--muted); }
+.pill.topic.secu { background: color-mix(in srgb, #dc2626 12%, transparent); color: #dc2626; }
+.pill.topic.ia { background: color-mix(in srgb, #4f46e5 14%, transparent); color: var(--primary); }
+
+/* Création depuis des photos */
+.drop { display: block; border: 2px dashed var(--border); border-radius: 12px; padding: 22px; text-align: center; cursor: pointer; margin: 14px 0 6px; font-weight: 600; color: var(--primary); }
+.drop:hover { border-color: var(--primary-2); background: var(--primary-soft); }
+.drop input { display: none; }
+.gen-status { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; font-weight: 600; }
+[data-tabs] { margin: 6px 0 12px; }

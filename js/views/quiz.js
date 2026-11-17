@@ -1,8 +1,36 @@
 import { state, save, uid, getDeck } from '../store.js';
 import { esc, icon, relTime, $ } from '../ui.js';
 import { md, stripMd } from '../md.js';
-import { cardFace } from '../cardview.js';
-import { shuffle } from '../srs.js';
+import { cardFace, cardColor } from '../cardview.js';
+import { shuffle, extractFacts } from '../srs.js';
+import { isFiche } from '../md.js';
+
+/**
+ * Le quiz travaille sur des « faits » : chaque puce « **Notion** : explication » d'une fiche
+ * devient une question. Les flashcards restent peu nombreuses (3 à 5 fiches par cours)
+ * tandis que le quiz reste varié.
+ */
+let ITEMS = [];
+function buildItems() {
+  ITEMS = [];
+  for (const c of state.cards) {
+    const facts = extractFacts(c);
+    facts.forEach((f, i) =>
+      ITEMS.push({
+        id: `${c.id}#${i}`,
+        cardId: c.id,
+        deckId: c.deckId,
+        front: f.q,
+        back: f.a,
+        section: c.section || (isFiche(c.back) ? c.front : ''),
+        sub: f.topic,
+        color: cardColor(c),
+        trap: facts.length === 1 ? c.trap || '' : '',
+      }),
+    );
+  }
+  return ITEMS;
+}
 
 const TYPES = { mix: 'Mixte', qcm: 'QCM', tf: 'Vrai / Faux', write: 'Réponse écrite' };
 const TYPE_LABEL = { qcm: 'QCM', tf: 'Vrai ou faux ?', write: 'Réponse écrite' };
@@ -34,19 +62,19 @@ function typedOk(input, back) {
 const isShort = (c) => !c.back.includes('\n') && stripMd(c.back).length <= 40;
 
 function scopes() {
-  const list = [{ v: 'all', l: `Toutes les cartes`, n: state.cards.length }];
-  state.decks.forEach((d) => list.push({ v: 'd:' + d.id, l: `Paquet : ${d.name}`, n: state.cards.filter((c) => c.deckId === d.id).length }));
-  const secs = [...new Set(state.cards.map((c) => c.section).filter(Boolean))];
-  secs.forEach((s) => list.push({ v: 's:' + s, l: `Thème : ${s}`, n: state.cards.filter((c) => c.section === s).length }));
-  const mistakes = state.cards.filter((c) => state.quizMistakes.includes(c.id)).length;
+  const list = [{ v: 'all', l: `Tout`, n: ITEMS.length }];
+  state.decks.forEach((d) => list.push({ v: 'd:' + d.id, l: `Paquet : ${d.name}`, n: ITEMS.filter((c) => c.deckId === d.id).length }));
+  const secs = [...new Set(ITEMS.map((c) => c.section).filter(Boolean))];
+  secs.forEach((s) => list.push({ v: 's:' + s, l: `Fiche : ${s}`, n: ITEMS.filter((c) => c.section === s).length }));
+  const mistakes = ITEMS.filter((c) => state.quizMistakes.includes(c.id)).length;
   list.push({ v: 'mistakes', l: '🔁 Mes erreurs', n: mistakes });
   return list.filter((x) => x.n > 0 || x.v === 'mistakes');
 }
 function poolOf(scope) {
-  if (scope === 'all') return state.cards;
-  if (scope === 'mistakes') return state.cards.filter((c) => state.quizMistakes.includes(c.id));
-  if (scope.startsWith('d:')) return state.cards.filter((c) => c.deckId === scope.slice(2));
-  if (scope.startsWith('s:')) return state.cards.filter((c) => c.section === scope.slice(2));
+  if (scope === 'all') return ITEMS;
+  if (scope === 'mistakes') return ITEMS.filter((c) => state.quizMistakes.includes(c.id));
+  if (scope.startsWith('d:')) return ITEMS.filter((c) => c.deckId === scope.slice(2));
+  if (scope.startsWith('s:')) return ITEMS.filter((c) => c.section === scope.slice(2));
   return [];
 }
 const scopeLabel = (scope) => scopes().find((s) => s.v === scope)?.l || 'Quiz';
@@ -74,6 +102,7 @@ function makeQuestion(card, type, universe) {
 }
 
 export default function quizView(el, { query }) {
+  buildItems();
   let cfg = { scope: query.get('scope') || 'all', count: 10, type: 'mix' };
   let run = null;
 
@@ -82,16 +111,16 @@ export default function quizView(el, { query }) {
     if (!sc.some((s) => s.v === cfg.scope)) cfg.scope = 'all';
     const hist = state.quizLog.slice(-8).reverse();
     el.innerHTML = `
-      <div class="page-head"><div><h1>Quiz</h1><p class="muted">Teste-toi sur tes flashcards : QCM, vrai/faux et réponses écrites.</p></div></div>
+      <div class="page-head"><div><h1>Quiz</h1><p class="muted">Une question par notion de tes fiches : QCM, vrai/faux et réponses écrites.</p></div></div>
       ${
-        !state.cards.length
+        !ITEMS.length
           ? `<div class="empty">${icon('cards', 40)}<h3>Pas encore de cartes</h3><p>Crée des flashcards ou installe un paquet prêt à l'emploi.</p><a class="btn primary" href="#/flashcards">Flashcards</a></div>`
           : `<section class="panel quiz-setup">
         <label class="field"><span>Sur quoi ?</span><select data-scope>${sc.map((s) => `<option value="${esc(s.v)}" ${s.v === cfg.scope ? 'selected' : ''} ${!s.n ? 'disabled' : ''}>${esc(s.l)} (${s.n})</option>`).join('')}</select></label>
         <div class="field"><span>Nombre de questions</span><div class="seg">${[10, 20, 30, 0].map((n) => `<button class="${cfg.count === n ? 'on' : ''}" data-count="${n}">${n || 'Tout'}</button>`).join('')}</div></div>
         <div class="field"><span>Type de questions</span><div class="seg">${Object.entries(TYPES).map(([k, l]) => `<button class="${cfg.type === k ? 'on' : ''}" data-type="${k}">${l}</button>`).join('')}</div></div>
         <button class="btn primary lg" data-act="start">${icon('zap')} Lancer le quiz</button>
-        <p class="muted small">Les questions ratées repassent en révision et vont dans « Mes erreurs ».</p>
+        <p class="muted small">${ITEMS.length} questions disponibles. Les questions ratées vont dans « Mes erreurs » et leur fiche repasse en révision.</p>
       </section>`
       }
       ${
@@ -109,7 +138,7 @@ export default function quizView(el, { query }) {
   function start(scope = cfg.scope) {
     const universe = poolOf(scope);
     if (!universe.length) return;
-    const distractorPool = scope === 'mistakes' ? state.cards : universe.length >= 4 ? universe : state.cards;
+    const distractorPool = scope === 'mistakes' ? ITEMS : universe.length >= 4 ? universe : ITEMS;
     const picked = shuffle(universe).slice(0, cfg.count || universe.length);
     run = { scope, label: scopeLabel(scope), idx: 0, score: 0, qs: picked.map((c) => makeQuestion(c, cfg.type, distractorPool)) };
     drawQ();
@@ -169,7 +198,8 @@ export default function quizView(el, { query }) {
       if (q.correct) mistakes.delete(q.card.id);
       else {
         mistakes.add(q.card.id);
-        q.card.due = Math.min(q.card.due, now); // retour en révision
+        const real = state.cards.find((c) => c.id === q.card.cardId);
+        if (real) real.due = Math.min(real.due, now); // la fiche concernée repasse en révision
       }
     });
     state.quizMistakes = [...mistakes];
@@ -213,8 +243,8 @@ export default function quizView(el, { query }) {
     if (act === 'again') return (run = null), setup();
     if (act === 'redo-wrong') {
       const ids = new Set(run.lastWrong);
-      const universe = state.cards.filter((c) => ids.has(c.id));
-      run = { scope: 'mistakes', label: 'Mes erreurs', idx: 0, score: 0, qs: shuffle(universe).map((c) => makeQuestion(c, cfg.type, state.cards)) };
+      const universe = ITEMS.filter((c) => ids.has(c.id));
+      run = { scope: 'mistakes', label: 'Mes erreurs', idx: 0, score: 0, qs: shuffle(universe).map((c) => makeQuestion(c, cfg.type, ITEMS)) };
       return drawQ();
     }
     const q = run.qs[run.idx];
