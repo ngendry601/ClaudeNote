@@ -202,6 +202,7 @@ input[type='checkbox'], input[type='radio'] { width: auto; accent-color: var(--p
 .prose code { background: var(--surface-2); padding: .1em .35em; border-radius: 5px; }
 .prose pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 12px; overflow: auto; font-size: .88rem; line-height: 1.5; }
 .prose pre code { background: none; padding: 0; }
+.flash-content pre, .flash-content pre code { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8rem; }
 .prose hr { border: 0; border-top: 1px solid var(--border); margin: 1.6em 0; }
 .prose blockquote { margin: 1em 0; padding: 4px 16px; border-left: 4px solid var(--border); color: var(--muted); }
 .prose img { max-width: 100%; border-radius: 10px; }

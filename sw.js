@@ -1,9 +1,9 @@
 // Service worker : hors-ligne (réseau d'abord, cache en secours), notifications push et clic sur notification
-const CACHE = 'claudenote-v10';
+const CACHE = 'claudenote-v12';
 const SHELL = [
   './', 'index.html', 'css/style.css', 'icon.svg', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png',
-  'data/cejm.json', 'data/cge-vrai-faux.json',
+  'data/cejm.json', 'data/cge-vrai-faux.json', 'data/cyber-slam.json',
   'js/app.js', 'js/db.js', 'js/store.js', 'js/sources.js', 'js/srs.js', 'js/ui.js', 'js/md.js', 'js/news.js', 'js/notify.js',
   'js/theme.js', 'js/packs.js', 'js/push.js', 'js/ai.js',
   'js/views/home.js', 'js/views/courses.js', 'js/views/create.js', 'js/views/flashcards.js', 'js/views/quiz.js',
