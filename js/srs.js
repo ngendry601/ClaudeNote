@@ -96,8 +96,6 @@ export function extractCards(text) {
         out.push({ front: m[1].trim(), back: n[1].trim(), ...meta() });
         i++;
       }
-    } else if ((m = l.match(/^\s*[-*+]\s+\*\*(.+?)\*\*\s*[:–—]\s*(.+)$/))) {
-      out.push({ front: `Définition : ${m[1].trim()}`, back: m[2].trim(), ...meta() });
     }
   }
   return out;

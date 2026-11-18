@@ -4,8 +4,8 @@
 //     (stockée uniquement sur l'appareil). SDK officiel chargé à la demande depuis un CDN.
 //  2. Gratuite : on copie les instructions, l'utilisateur les colle dans l'appli Claude avec ses photos,
 //     puis colle la réponse ici.
-import { state, save, uid, ensureDeckForCourse, newCard } from './store.js';
-import { extractCards } from './srs.js';
+import { state } from './store.js';
+import { createCourse } from './library.js';
 
 const SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.4.0/+esm';
 const MODEL = 'claude-opus-5-5';
@@ -130,11 +130,7 @@ export function cleanMarkdown(text) {
 export function importCourseMarkdown(text, subjectId = null) {
   const content = cleanMarkdown(text);
   const title = (content.match(/^#\s+(.+)$/m) || [])[1]?.trim() || 'Nouveau cours';
-  const course = { id: uid(), title, subjectId: subjectId || null, content: content + '\n', tags: ['ia'], attachments: [], createdAt: Date.now(), updatedAt: Date.now() };
-  state.courses.push(course);
-  const extracted = extractCards(content);
-  const deck = ensureDeckForCourse(course);
-  extracted.forEach((c) => state.cards.push(newCard(deck.id, c.front, c.back, { trap: c.trap || '', section: c.section, sub: c.sub, color: c.color })));
-  save();
-  return { course, cards: extracted.length };
+  const course = createCourse({ title, subjectId, content: content + '\n' });
+  const deck = state.decks.find((d) => d.courseId === course.id);
+  return { course, cards: deck ? state.cards.filter((c) => c.deckId === deck.id).length : 0 };
 }

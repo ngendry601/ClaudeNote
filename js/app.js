@@ -3,44 +3,58 @@ import { icon, toast, $, $$ } from './ui.js';
 import { applyTheme } from './theme.js';
 import { startAutoRefresh, unreadFresh } from './news.js';
 import { timer, onTick, setMode, fmt, MODES } from './timer.js';
-import dashboard from './views/dashboard.js';
-import { coursesList, courseView } from './views/courses.js';
-import { decksList, deckView } from './views/flashcards.js';
+import { importPack, outdatedPacks } from './packs.js';
+import { migrateOrphanDecks } from './library.js';
+import home from './views/home.js';
+import coursesView from './views/courses.js';
+import { courseView, courseEdit, pageView } from './views/course.js';
+import reviseView from './views/revise.js';
 import review from './views/review.js';
+import quizView from './views/quiz.js';
 import newsView from './views/news.js';
 import pomodoroView from './views/pomodoro.js';
 import settingsView from './views/settings.js';
 import searchView from './views/search.js';
-import quizView from './views/quiz.js';
-import ficheView from './views/fiche.js';
-import sheetView from './views/sheet.js';
-import { importPack, outdatedPacks } from './packs.js';
 
+// 5 onglets, toujours les mêmes, sur ordinateur comme sur téléphone
 const NAV = [
   { href: '#/', label: 'Accueil', icon: 'home', match: /^\/$/ },
-  { href: '#/cours', label: 'Cours', icon: 'book', match: /^\/cours/ },
-  { href: '#/flashcards', label: 'Flashcards', icon: 'cards', match: /^\/(flashcards|reviser)/ },
-  { href: '#/quiz', label: 'Quiz', icon: 'quiz', match: /^\/quiz/ },
+  { href: '#/cours', label: 'Cours', icon: 'book', match: /^\/(cours|page)/ },
+  { href: '#/reviser', label: 'Réviser', icon: 'cards', match: /^\/(reviser|quiz)/ },
   { href: '#/veille', label: 'Veille', icon: 'bell', match: /^\/veille/, badge: true },
-  { href: '#/pomodoro', label: 'Pomodoro', icon: 'timer', match: /^\/pomodoro/, desktop: true },
-  { href: '#/reglages', label: 'Réglages', icon: 'settings', match: /^\/reglages/, desktop: true },
+  { href: '#/reglages', label: 'Réglages', icon: 'settings', match: /^\/(reglages|pomodoro)/ },
 ];
 
 const routes = [
-  [/^\/$/, dashboard],
-  [/^\/cours$/, coursesList],
+  [/^\/$/, home],
+  [/^\/cours$/, coursesView],
   [/^\/cours\/([\w-]+)$/, courseView],
-  [/^\/flashcards$/, decksList],
-  [/^\/flashcards\/([\w-]+)$/, deckView],
+  [/^\/cours\/([\w-]+)\/modifier$/, courseEdit],
+  [/^\/page\/([\w-]+)$/, pageView],
+  [/^\/reviser$/, reviseView],
   [/^\/reviser\/([\w-]+)$/, review],
+  [/^\/quiz$/, quizView],
   [/^\/veille$/, newsView],
   [/^\/pomodoro$/, pomodoroView],
   [/^\/reglages$/, settingsView],
   [/^\/recherche$/, searchView],
-  [/^\/quiz$/, quizView],
-  [/^\/fiche\/([\w-]+)$/, ficheView],
-  [/^\/feuille\/([\w-]+)$/, sheetView],
 ];
+
+// anciennes adresses (favoris, notifications) → nouveaux écrans
+function redirect(path) {
+  let m;
+  if (path === '/flashcards') return '#/reviser';
+  if ((m = path.match(/^\/flashcards\/([\w-]+)$/)) || (m = path.match(/^\/feuille\/([\w-]+)$/))) {
+    const deck = state.decks.find((d) => d.id === m[1]);
+    return deck?.courseId ? `#/cours/${deck.courseId}` : '#/reviser';
+  }
+  if ((m = path.match(/^\/fiche\/([\w-]+)$/))) {
+    const card = state.cards.find((c) => c.id === m[1]);
+    const deck = card && state.decks.find((d) => d.id === card.deckId);
+    return deck?.courseId ? `#/page/${deck.courseId}` : '#/reviser';
+  }
+  return null;
+}
 
 const view = $('#view');
 let cleanup = null;
@@ -64,16 +78,16 @@ function render() {
   ['onclick', 'oninput', 'onchange', 'onsubmit', 'onkeydown'].forEach((h) => (view[h] = null));
   const h = location.hash.slice(1) || '/';
   const [path, qs] = h.split('?');
+  const to = redirect(path);
+  if (to) return location.replace(to);
   const query = new URLSearchParams(qs || '');
-  $$('.nav a, #top-links a').forEach((a) => {
+  $$('.nav a').forEach((a) => {
     const item = NAV.find((n) => n.href === a.getAttribute('href'));
-    if (!item) return;
     a.classList.toggle('active', !!item?.match.test(path));
   });
-  if (path !== '/recherche') $('#search').value = '';
-  const full = path.startsWith('/fiche') || path.startsWith('/feuille');
-  document.body.classList.toggle('focus-mode', path.startsWith('/reviser') || full);
-  document.body.classList.toggle('fiche-mode', full);
+  // écrans « immersifs » : révision et fiche en plein écran, sans la barre de navigation
+  const immersive = /^\/(reviser\/|page\/)/.test(path);
+  document.body.classList.toggle('focus-mode', immersive);
   for (const [re, fn] of routes) {
     const m = path.match(re);
     if (m) {
@@ -88,30 +102,8 @@ function render() {
 
 function buildNav() {
   $('#nav').innerHTML = NAV.map(
-    (n) => `<a href="${n.href}" title="${n.label}" class="${n.desktop ? 'desk-only' : ''}">${icon(n.icon, 20)}<span>${n.label}</span>${n.badge ? '<b class="badge" data-badge hidden></b>' : ''}</a>`,
+    (n) => `<a href="${n.href}" title="${n.label}">${icon(n.icon, 22)}<span>${n.label}</span>${n.badge ? '<b class="badge" data-badge hidden></b>' : ''}</a>`,
   ).join('');
-  $('#search-ic').innerHTML = icon('search', 16);
-  $('#top-links').innerHTML = NAV.filter((n) => n.desktop)
-    .map((n) => `<a href="${n.href}" class="icon-btn" title="${n.label}">${icon(n.icon, 20)}</a>`)
-    .join('');
-}
-
-function setupSearch() {
-  const input = $('#search');
-  let t;
-  input.addEventListener('input', () => {
-    clearTimeout(t);
-    t = setTimeout(() => {
-      const q = input.value.trim();
-      if (q) location.hash = `#/recherche?q=${encodeURIComponent(q)}`;
-    }, 300);
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === '/' && !e.target.matches('input, textarea, select')) {
-      e.preventDefault();
-      input.focus();
-    }
-  });
 }
 
 function setupMiniTimer() {
@@ -129,15 +121,15 @@ async function init() {
   if (firstRun) await importPack('cejm').catch((e) => console.warn('Paquet CEJM', e));
   for (const p of outdatedPacks()) {
     try {
-      const r = await importPack(p.id);
-      setTimeout(() => toast(`« ${p.title} » mis à jour : ${r.added + r.updated} fiches`, 'success'), 800);
+      await importPack(p.id);
+      setTimeout(() => toast(`« ${p.title} » mis à jour`, 'success'), 800);
     } catch (e) {
       console.warn('Mise à jour du paquet', p.id, e);
     }
   }
+  migrateOrphanDecks();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
   buildNav();
-  setupSearch();
   setMode('work');
   setupMiniTimer();
   window.addEventListener('hashchange', render);

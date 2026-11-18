@@ -1,6 +1,6 @@
 // Paquets prêts à l'emploi (cours + flashcards générées)
-import { state, save, uid, ensureDeckForCourse, cardsOf, newCard } from './store.js';
-import { extractCards } from './srs.js';
+import { state, save, uid } from './store.js';
+import { syncCourseCards } from './library.js';
 
 export const PACKS = [
   {
@@ -34,29 +34,9 @@ export async function importPack(id) {
   }
   course.content = txt;
   course.updatedAt = Date.now();
-  const deck = ensureDeckForCourse(course);
-  deck.subjectId = subject.id;
-  const existing = new Map(cardsOf(deck.id).map((c) => [c.front.trim().toLowerCase(), c]));
-  const fresh = extractCards(txt);
-  const keep = new Set(fresh.map((c) => c.front.trim().toLowerCase()));
-  const before = state.cards.length;
-  state.cards = state.cards.filter((c) => c.deckId !== deck.id || keep.has(c.front.trim().toLowerCase()));
-  const removed = before - state.cards.length;
-  let added = 0;
-  let updated = 0;
-  for (const c of fresh) {
-    const ex = existing.get(c.front.trim().toLowerCase());
-    if (ex) {
-      Object.assign(ex, { back: c.back, trap: c.trap || '', section: c.section, sub: c.sub, color: c.color });
-      updated++;
-    } else {
-      state.cards.push(newCard(deck.id, c.front, c.back, { trap: c.trap || '', section: c.section, sub: c.sub, color: c.color }));
-      added++;
-    }
-  }
   course.title = p.title;
-  deck.name = p.title;
+  const r = syncCourseCards(course);
   state.packVersions[id] = p.version;
   save();
-  return { added, updated, removed, deckId: deck.id, courseId: course.id };
+  return { added: r.added, updated: r.total - r.added, removed: r.removed, courseId: course.id };
 }

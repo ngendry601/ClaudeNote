@@ -1,56 +1,65 @@
+// Révision : chaque flashcard s'affiche comme une page A4 qui tient entièrement dans l'écran.
 import { state, save, getDeck, cardsOf, isDue, logReview, dayKey } from '../store.js';
-import { esc, icon } from '../ui.js';
-import { cardFace } from '../cardview.js';
-import { ficheOverlay } from './fiche.js';
+import { esc, icon, $ } from '../ui.js';
 import { schedule, intervalLabel, GRADES, shuffle } from '../srs.js';
+import { cardPageHtml, mountA4 } from '../a4.js';
+import { cardColor } from '../cardview.js';
 
 export default function review(el, { params: [id], query }) {
   const libre = query.get('libre') === '1';
   const deck = id === 'all' ? null : getDeck(id);
   const pool = id === 'all' ? state.cards : deck ? cardsOf(deck.id) : [];
   const now = Date.now();
-  let queue = libre ? shuffle(pool) : pool.filter((c) => isDue(c, now)).sort((a, b) => a.due - b.due);
+  const queue = libre ? shuffle(pool) : pool.filter((c) => isDue(c, now)).sort((a, b) => a.due - b.due);
   const total = queue.length;
   let idx = 0;
   let flipped = false;
+  let zoom = 'page';
+  let a4 = null;
   const stats = [0, 0, 0, 0];
-  const backHref = deck ? `#/flashcards/${deck.id}` : '#/flashcards';
-  const title = deck ? deck.name : 'Toutes les cartes';
+  const exitHref = deck?.courseId ? `#/cours/${deck.courseId}` : '#/reviser';
+  const title = deck ? deck.name : 'Toutes mes fiches';
+
+  function done(html) {
+    a4?.destroy();
+    a4 = null;
+    el.innerHTML = `<div class="review-screen"><div class="review-done">${html}</div></div>`;
+  }
 
   function draw() {
     if (!queue.length) {
-      el.innerHTML = `<div class="empty">${icon('check', 40)}<h3>Rien à réviser 🎉</h3><p>Toutes les cartes de « ${esc(title)} » sont à jour.</p>
-        <div class="head-actions">${pool.length ? `<a class="btn" href="#/reviser/${id}?libre=1">Entraînement libre</a>` : ''}<a class="btn primary" href="${backHref}">Retour</a></div></div>`;
-      return;
+      return done(`<div class="big-emoji">🎉</div><h2>Rien à réviser</h2><p class="muted">Toutes les fiches de « ${esc(title)} » sont à jour.</p>
+        <div class="stack">${pool.length ? `<a class="btn primary lg" href="#/reviser/${id}?libre=1">Réviser quand même</a>` : ''}
+        <a class="btn lg" href="#/quiz${deck ? `?scope=d:${deck.id}` : ''}">❓ Faire un quiz</a><a class="btn ghost" href="${exitHref}">Retour</a></div>`);
     }
     if (idx >= queue.length) {
-      const done = stats.reduce((a, b) => a + b, 0);
+      const n = stats.reduce((a, b) => a + b, 0);
       const ok = stats[2] + stats[3];
-      el.innerHTML = `<div class="review-done panel">
-        <div class="big-emoji">${ok / done > 0.8 ? '🏆' : ok / done > 0.5 ? '💪' : '📚'}</div>
-        <h2>Session terminée !</h2><p class="muted">${done} réponse${done > 1 ? 's' : ''} · ${total} carte${total > 1 ? 's' : ''}${libre ? ' · mode libre (planning inchangé)' : ''}</p>
+      return done(`<div class="big-emoji">${ok / n > 0.8 ? '🏆' : ok / n > 0.5 ? '💪' : '📚'}</div>
+        <h2>Session terminée !</h2><p class="muted">${total} fiche${total > 1 ? 's' : ''} révisée${total > 1 ? 's' : ''}${libre ? ' (mode libre : le planning ne change pas)' : ''}</p>
         <div class="grade-stats">${GRADES.map((g) => `<div class="${g.cls}"><b>${stats[g.g]}</b><span>${g.label}</span></div>`).join('')}</div>
-        <p>Aujourd'hui : <b>${state.reviewLog[dayKey()] || 0}</b> / ${state.settings.dailyGoal} cartes</p>
-        <div class="head-actions"><a class="btn" href="#/">Accueil</a><a class="btn primary" href="${backHref}">Terminer</a></div></div>`;
-      return;
+        <p>Aujourd'hui : <b>${state.reviewLog[dayKey()] || 0}</b> / ${state.settings.dailyGoal}</p>
+        <div class="stack"><a class="btn primary lg" href="#/quiz${deck ? `?scope=d:${deck.id}` : ''}">❓ Enchaîner avec un quiz</a><a class="btn ghost" href="${exitHref}">Terminer</a></div>`);
     }
     const card = queue[idx];
     const d = state.decks.find((x) => x.id === card.deckId);
     el.innerHTML = `
-      <div class="review-top"><a href="${backHref}" class="back-link">${icon('x', 16)} Quitter</a>
-        ${flipped ? `<button class="back-link link-btn" data-full>⛶ Plein écran</button>` : ''}
-        <span class="muted">${esc(title)}${libre ? ' · <b>mode libre</b>' : ''}</span><span class="muted">${Math.min(idx + 1, queue.length)} / ${queue.length}</span></div>
-      <div class="progress"><i style="width:${(idx / queue.length) * 100}%"></i></div>
-      <div class="flash-wrap" data-flip tabindex="0">${cardFace(card, {
-        flipped,
-        corner: id === 'all' && d ? d.name : card.lapses ? `${card.lapses} oubli${card.lapses > 1 ? 's' : ''}` : '',
-        hint: 'Clique ou appuie sur <kbd>Espace</kbd> pour voir la réponse',
-      })}</div>
-      <div class="grades">${
-        flipped
-          ? GRADES.map((g) => `<button class="grade ${g.cls}" data-g="${g.g}"><b>${g.label}</b><small>${libre ? '' : intervalLabel(card, g.g)}</small><kbd>${g.key}</kbd></button>`).join('')
-          : `<button class="btn primary lg" data-flip>Afficher la réponse <kbd>Espace</kbd></button>`
-      }</div>`;
+      <div class="review-screen">
+        <div class="review-bar">
+          <a href="${exitHref}" class="ff-btn" title="Quitter">${icon('x', 20)}</a>
+          <div class="review-prog"><span>${esc(d?.name || title)}${libre ? ' · libre' : ''}</span><div class="progress"><i style="width:${(idx / queue.length) * 100}%"></i></div></div>
+          <span class="review-count">${idx + 1}/${queue.length}</span>
+        </div>
+        <div class="a4-stage review-stage ${zoom === 'width' ? 'scroll' : ''}" data-stage></div>
+        <div class="review-actions">${
+          flipped
+            ? `<div class="grades">${GRADES.map((g) => `<button class="grade ${g.cls}" data-g="${g.g}"><b>${g.label}</b><small>${libre ? '' : intervalLabel(card, g.g)}</small></button>`).join('')}</div>
+               <button class="link-btn zoom-btn" data-zoom>${zoom === 'page' ? '🔍 Agrandir le texte' : '📄 Voir la page entière'}</button>`
+            : `<button class="btn primary lg block" data-flip>Voir la réponse</button>`
+        }</div>
+      </div>`;
+    a4?.destroy();
+    a4 = mountA4($('[data-stage]', el), cardPageHtml(card, { flipped, title: d?.name || '', color: cardColor(card) }), { mode: zoom, maxCols: 2, maxFont: 30 });
   }
 
   function grade(g) {
@@ -61,34 +70,39 @@ export default function review(el, { params: [id], query }) {
       logReview();
       save();
     }
-    if (g === 0) queue.push(card); // on la revoit en fin de session
+    if (g === 0) queue.push(card); // revue en fin de session
     idx++;
     flipped = false;
+    zoom = 'page';
     draw();
   }
+  const flip = () => {
+    flipped = true;
+    draw();
+  };
+  const toggleZoom = () => {
+    zoom = zoom === 'page' ? 'width' : 'page';
+    draw();
+  };
 
   draw();
   el.onclick = (e) => {
-    if (e.target.closest('[data-full]')) return ficheOverlay(queue[idx]);
     const g = e.target.closest('[data-g]');
     if (g) return grade(+g.dataset.g);
-    if (e.target.closest('[data-flip]') && !flipped && !e.target.closest('a')) {
-      flipped = true;
-      draw();
-    }
+    if (e.target.closest('[data-flip]')) return flip();
+    if (e.target.closest('[data-zoom]')) return toggleZoom();
+    if (e.target.closest('.a4')) return flipped ? toggleZoom() : flip();
   };
   const onKey = (e) => {
-    if (e.target.matches('input, textarea') || idx >= queue.length) return;
+    if (e.target.matches('input, textarea') || idx >= queue.length || !queue.length) return;
     if ((e.key === ' ' || e.key === 'Enter') && !flipped) {
       e.preventDefault();
-      flipped = true;
-      draw();
+      flip();
     } else if (flipped && ['1', '2', '3', '4'].includes(e.key)) grade(+e.key - 1);
-    else if (flipped && (e.key === ' ' || e.key === 'Enter')) {
-      e.preventDefault();
-      grade(2);
-    }
   };
   document.addEventListener('keydown', onKey);
-  return () => document.removeEventListener('keydown', onKey);
+  return () => {
+    a4?.destroy();
+    document.removeEventListener('keydown', onKey);
+  };
 }

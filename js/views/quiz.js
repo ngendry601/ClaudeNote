@@ -114,7 +114,7 @@ export default function quizView(el, { query }) {
       <div class="page-head"><div><h1>Quiz</h1><p class="muted">Une question par notion de tes fiches : QCM, vrai/faux et réponses écrites.</p></div></div>
       ${
         !ITEMS.length
-          ? `<div class="empty">${icon('cards', 40)}<h3>Pas encore de cartes</h3><p>Crée des flashcards ou installe un paquet prêt à l'emploi.</p><a class="btn primary" href="#/flashcards">Flashcards</a></div>`
+          ? `<div class="empty">${icon('cards', 40)}<h3>Pas encore de questions</h3><p>Ajoute un cours : chaque notion en gras devient une question.</p><a class="btn primary" href="#/cours?ajouter=1">Ajouter un cours</a></div>`
           : `<section class="panel quiz-setup">
         <label class="field"><span>Sur quoi ?</span><select data-scope>${sc.map((s) => `<option value="${esc(s.v)}" ${s.v === cfg.scope ? 'selected' : ''} ${!s.n ? 'disabled' : ''}>${esc(s.l)} (${s.n})</option>`).join('')}</select></label>
         <div class="field"><span>Nombre de questions</span><div class="seg">${[10, 20, 30, 0].map((n) => `<button class="${cfg.count === n ? 'on' : ''}" data-count="${n}">${n || 'Tout'}</button>`).join('')}</div></div>
@@ -216,7 +216,7 @@ export default function quizView(el, { query }) {
         <div class="head-actions">
           ${wrong.length ? `<button class="btn" data-act="redo-wrong">🔁 Refaire mes ${wrong.length} erreur${wrong.length > 1 ? 's' : ''}</button>` : ''}
           <button class="btn" data-act="again">Nouveau quiz</button>
-          <a class="btn primary" href="#/flashcards">Réviser</a></div>
+          <a class="btn primary" href="#/reviser">Réviser</a></div>
       </div>
       ${
         wrong.length
@@ -227,6 +227,8 @@ export default function quizView(el, { query }) {
   }
 
   setup();
+  // ouvert depuis un cours : on démarre directement (10 questions variées)
+  if (query.get('scope') && poolOf(cfg.scope).length) start();
 
   el.onclick = (e) => {
     const t = e.target;
@@ -238,7 +240,7 @@ export default function quizView(el, { query }) {
       if (t.closest('[data-act="start"]')) return start();
       return;
     }
-    if (t.closest('[data-quit]')) return (run = null), setup();
+    if (t.closest('[data-quit]')) return history.length > 1 && query.get('scope') ? history.back() : ((run = null), setup());
     const act = t.closest('[data-act]')?.dataset.act;
     if (act === 'again') return (run = null), setup();
     if (act === 'redo-wrong') {

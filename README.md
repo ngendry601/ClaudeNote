@@ -4,6 +4,20 @@ Une appli pour **stocker tous tes cours**, **réviser avec des flashcards** (ré
 
 Web app installable (PWA), sans dépendance, qui fonctionne hors-ligne. Tes données restent **dans ton navigateur** (IndexedDB).
 
+## 🧭 Comment ça marche (5 onglets)
+
+| Onglet | À quoi il sert |
+|---|---|
+| **Accueil** | Un gros bouton « Réviser », tes cours récents, tes examens (J-n), les alertes de veille |
+| **Cours** | Tous tes cours en vignettes A4. **+ Ajouter un cours** : photos, coller une réponse de Claude, écrire, ou un cours prêt (CEJM) |
+| **Réviser** | Les flashcards et le quiz, pour tout ou cours par cours |
+| **Veille** | Failles / mises à jour de sécurité et actu IA |
+| **Réglages** | Pomodoro, matières, notifications, clé API, sauvegarde |
+
+**Un cours = une fiche A4**, comme un PDF de révision : titre, bandeaux numérotés colorés, colonnes, l'essentiel surligné, encadrés « Piège ».
+Chaque partie du cours (3 à 5) devient automatiquement **une flashcard** : pas de paquet à gérer, les cartes suivent le texte du cours.
+En révision, la réponse s'affiche **sur une page A4 qui tient entière dans l'écran** (🔍 pour agrandir, ou zoom à deux doigts).
+
 ## 📱 L'installer sur ton téléphone
 
 L'appli est publiée gratuitement sur **GitHub Pages** : https://ngendry601.github.io/ClaudeNote/

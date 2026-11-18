@@ -4,6 +4,7 @@ import { esc, icon, toast, confirmBox, formModal, download, fmtDate } from '../u
 import { askPermission, notifPermission, notify } from '../notify.js';
 import { startAutoRefresh } from '../news.js';
 import { applyTheme } from '../theme.js';
+import { manageSubjects } from './courses.js';
 import { pushSupported, isStandalone, isIOS, subscribePush, unsubscribePush, configCode, REPO } from '../push.js';
 
 const blobToB64 = (b) =>
@@ -47,6 +48,11 @@ export default function settingsView(el) {
     const perm = notifPermission();
     el.innerHTML = `
       <div class="page-head"><h1>Réglages</h1></div>
+      <section class="panel"><h2>Outils</h2>
+        <div class="choice-list">
+          <a class="choice" href="#/pomodoro"><span>⏱️</span><div><b>Pomodoro</b><small>Minuteur 25 min de travail / 5 min de pause</small></div></a>
+          <a class="choice" href="#/cours" data-subjects><span>🏷️</span><div><b>Matières</b><small>Créer, renommer, changer les couleurs</small></div></a>
+        </div></section>
 
       <section class="panel"><h2>Apparence</h2>
         <div class="seg">${[['auto', 'Automatique'], ['light', 'Clair'], ['dark', 'Sombre']].map(([k, l]) => `<button class="${state.settings.theme === k ? 'on' : ''}" data-theme="${k}">${l}</button>`).join('')}</div>
@@ -98,6 +104,10 @@ export default function settingsView(el) {
   draw();
 
   el.onclick = async (e) => {
+    if (e.target.closest('[data-subjects]')) {
+      e.preventDefault();
+      return manageSubjects(draw);
+    }
     const th = e.target.closest('[data-theme]');
     if (th) {
       state.settings.theme = th.dataset.theme;

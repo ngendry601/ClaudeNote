@@ -1,13 +1,13 @@
 // Service worker : hors-ligne (réseau d'abord, cache en secours), notifications push et clic sur notification
-const CACHE = 'claudenote-v6';
+const CACHE = 'claudenote-v7';
 const SHELL = [
   './', 'index.html', 'css/style.css', 'icon.svg', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png',
   'data/cejm.md',
   'js/app.js', 'js/db.js', 'js/store.js', 'js/sources.js', 'js/srs.js', 'js/ui.js', 'js/md.js', 'js/news.js', 'js/notify.js',
-  'js/timer.js', 'js/theme.js', 'js/packs.js', 'js/cardview.js', 'js/push.js', 'js/ai.js',
-  'js/views/dashboard.js', 'js/views/courses.js', 'js/views/flashcards.js', 'js/views/review.js', 'js/views/quiz.js',
-  'js/views/fiche.js', 'js/views/sheet.js', 'js/views/news.js', 'js/views/pomodoro.js', 'js/views/settings.js', 'js/views/search.js',
+  'js/timer.js', 'js/theme.js', 'js/packs.js', 'js/cardview.js', 'js/push.js', 'js/ai.js', 'js/a4.js', 'js/library.js',
+  'js/views/home.js', 'js/views/courses.js', 'js/views/course.js', 'js/views/revise.js', 'js/views/review.js', 'js/views/quiz.js',
+  'js/views/news.js', 'js/views/pomodoro.js', 'js/views/settings.js', 'js/views/search.js',
 ];
 
 self.addEventListener('install', (e) => {

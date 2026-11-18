@@ -24,7 +24,7 @@ export default function searchView(el, { query }) {
     <section class="panel"><h2>${icon('book')} Cours (${courses.length})</h2>
       ${courses.length ? `<ul class="link-list">${courses.map((c) => `<li><a href="#/cours/${c.id}"><span class="dot" style="background:${getSubject(c.subjectId)?.color || '#94a3b8'}"></span><div><b>${esc(c.title)}</b><small>${snippet(c.content.replace(/\s+/g, ' '), q)}</small></div></a></li>`).join('')}</ul>` : '<p class="empty-txt">Aucun cours.</p>'}</section>
     <section class="panel"><h2>${icon('cards')} Flashcards (${cards.length})</h2>
-      ${cards.length ? `<ul class="link-list">${cards.map((c) => `<li><a href="#/flashcards/${c.deckId}"><div><b>${snippet(c.front, q)}</b><small>${snippet(c.back, q)} · ${esc(getDeck(c.deckId)?.name || '')}</small></div></a></li>`).join('')}</ul>` : '<p class="empty-txt">Aucune carte.</p>'}</section>
+      ${cards.length ? `<ul class="link-list">${cards.map((c) => `<li><a href="${getDeck(c.deckId)?.courseId ? `#/cours/${getDeck(c.deckId).courseId}` : '#/reviser'}"><div><b>${snippet(c.front, q)}</b><small>${snippet(c.back, q)} · ${esc(getDeck(c.deckId)?.name || '')}</small></div></a></li>`).join('')}</ul>` : '<p class="empty-txt">Aucune carte.</p>'}</section>
     <section class="panel"><h2>${icon('bell')} Veille (${news.length})</h2>
       ${news.length ? `<ul class="link-list">${news.map((n) => `<li><a href="${esc(n.url)}" target="_blank" rel="noopener"><div><b>${esc(n.title)}</b></div></a></li>`).join('')}</ul>` : '<p class="empty-txt">Aucune actu.</p>'}</section>`;
 }
