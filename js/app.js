@@ -2,7 +2,7 @@ import { load, state, onChange } from './store.js';
 import { icon, toast, $, $$ } from './ui.js';
 import { applyTheme } from './theme.js';
 import { startAutoRefresh, unreadFresh } from './news.js';
-import { importPack, outdatedPacks, packCourse } from './packs.js';
+import { importPack, outdatedPacks, newPacks } from './packs.js';
 import home from './views/home.js';
 import { coursesList, courseView, courseEdit } from './views/courses.js';
 import { flashcardsHome, deckView, reviewView, browseView } from './views/flashcards.js';
@@ -81,7 +81,9 @@ function render() {
 async function init() {
   const firstRun = await load();
   applyTheme();
-  if (firstRun || (state.migratedFrom && !packCourse('cejm'))) await importPack('cejm').catch((e) => console.warn('CEJM', e));
+  for (const p of newPacks()) {
+    await importPack(p.id).then(() => !firstRun && setTimeout(() => toast(`Nouveau cours ajouté : ${p.title} ✨`, 'success'), 900)).catch((e) => console.warn(p.id, e));
+  }
   for (const p of outdatedPacks()) await importPack(p.id).catch(() => {});
   if (state.migratedFrom) {
     delete state.migratedFrom;
