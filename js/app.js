@@ -2,59 +2,43 @@ import { load, state, onChange } from './store.js';
 import { icon, toast, $, $$ } from './ui.js';
 import { applyTheme } from './theme.js';
 import { startAutoRefresh, unreadFresh } from './news.js';
-import { timer, onTick, setMode, fmt, MODES } from './timer.js';
-import { importPack, outdatedPacks } from './packs.js';
-import { migrateOrphanDecks } from './library.js';
+import { importPack, outdatedPacks, packCourse } from './packs.js';
 import home from './views/home.js';
-import coursesView from './views/courses.js';
-import { courseView, courseEdit, pageView } from './views/course.js';
-import reviseView from './views/revise.js';
-import review from './views/review.js';
-import quizView from './views/quiz.js';
+import { coursesList, courseView, courseEdit } from './views/courses.js';
+import { flashcardsHome, deckView, reviewView, browseView } from './views/flashcards.js';
+import { quizHome, quizPlay } from './views/quiz.js';
 import newsView from './views/news.js';
-import pomodoroView from './views/pomodoro.js';
 import settingsView from './views/settings.js';
-import searchView from './views/search.js';
 
-// 5 onglets, toujours les mêmes, sur ordinateur comme sur téléphone
 const NAV = [
-  { href: '#/', label: 'Accueil', icon: 'home', match: /^\/$/ },
-  { href: '#/cours', label: 'Cours', icon: 'book', match: /^\/(cours|page)/ },
-  { href: '#/reviser', label: 'Réviser', icon: 'cards', match: /^\/(reviser|quiz)/ },
+  { href: '#/', label: 'Accueil', icon: 'home', match: /^\/(reglages)?$/ },
+  { href: '#/cours', label: 'Cours', icon: 'book', match: /^\/cours/ },
+  { href: '#/flashcards', label: 'Flashcards', icon: 'cards', match: /^\/flashcards/ },
+  { href: '#/quiz', label: 'Quiz', icon: 'quiz', match: /^\/quiz/ },
   { href: '#/veille', label: 'Veille', icon: 'bell', match: /^\/veille/, badge: true },
-  { href: '#/reglages', label: 'Réglages', icon: 'settings', match: /^\/(reglages|pomodoro)/ },
 ];
 
 const routes = [
   [/^\/$/, home],
-  [/^\/cours$/, coursesView],
+  [/^\/cours$/, coursesList],
   [/^\/cours\/([\w-]+)$/, courseView],
   [/^\/cours\/([\w-]+)\/modifier$/, courseEdit],
-  [/^\/page\/([\w-]+)$/, pageView],
-  [/^\/reviser$/, reviseView],
-  [/^\/reviser\/([\w-]+)$/, review],
-  [/^\/quiz$/, quizView],
+  [/^\/flashcards$/, flashcardsHome],
+  [/^\/flashcards\/([\w-]+)$/, deckView],
+  [/^\/flashcards\/([\w-]+)\/revoir$/, reviewView],
+  [/^\/flashcards\/([\w-]+)\/parcourir$/, browseView],
+  [/^\/quiz$/, quizHome],
+  [/^\/quiz\/([\w-]+)$/, quizPlay],
   [/^\/veille$/, newsView],
-  [/^\/pomodoro$/, pomodoroView],
   [/^\/reglages$/, settingsView],
-  [/^\/recherche$/, searchView],
 ];
 
-// anciennes adresses (favoris, notifications) → nouveaux écrans
-function redirect(path) {
-  let m;
-  if (path === '/flashcards') return '#/reviser';
-  if ((m = path.match(/^\/flashcards\/([\w-]+)$/)) || (m = path.match(/^\/feuille\/([\w-]+)$/))) {
-    const deck = state.decks.find((d) => d.id === m[1]);
-    return deck?.courseId ? `#/cours/${deck.courseId}` : '#/reviser';
-  }
-  if ((m = path.match(/^\/fiche\/([\w-]+)$/))) {
-    const card = state.cards.find((c) => c.id === m[1]);
-    const deck = card && state.decks.find((d) => d.id === card.deckId);
-    return deck?.courseId ? `#/page/${deck.courseId}` : '#/reviser';
-  }
-  return null;
-}
+// anciennes adresses (favoris, notifications des versions précédentes)
+const REDIRECTS = [
+  [/^\/reviser(\/.*)?$/, '#/flashcards/tout/revoir'],
+  [/^\/(page|fiche|feuille)\/.*$/, '#/cours'],
+  [/^\/pomodoro$/, '#/'],
+];
 
 const view = $('#view');
 let cleanup = null;
@@ -75,24 +59,18 @@ function render() {
     console.error(e);
   }
   cleanup = null;
-  ['onclick', 'oninput', 'onchange', 'onsubmit', 'onkeydown'].forEach((h) => (view[h] = null));
-  const h = location.hash.slice(1) || '/';
-  const [path, qs] = h.split('?');
-  const to = redirect(path);
-  if (to) return location.replace(to);
-  const query = new URLSearchParams(qs || '');
-  $$('.nav a').forEach((a) => {
-    const item = NAV.find((n) => n.href === a.getAttribute('href'));
-    a.classList.toggle('active', !!item?.match.test(path));
-  });
-  // écrans « immersifs » : révision et fiche en plein écran, sans la barre de navigation
-  const immersive = /^\/(reviser\/|page\/)/.test(path);
-  document.body.classList.toggle('focus-mode', immersive);
+  ['onclick', 'oninput', 'onchange', 'onsubmit'].forEach((h) => (view[h] = null));
+  const [path, qs] = (location.hash.slice(1) || '/').split('?');
+  const to = REDIRECTS.find(([re]) => re.test(path));
+  if (to) return location.replace(to[1]);
+  $$('.nav a').forEach((a) => a.classList.toggle('active', !!NAV.find((n) => n.href === a.getAttribute('href'))?.match.test(path)));
+  // révision et quiz en plein écran, sans barre d'onglets
+  document.body.classList.toggle('immersive-mode', /^\/(flashcards\/[\w-]+\/(revoir|parcourir)|quiz\/[\w-]+)$/.test(path));
   for (const [re, fn] of routes) {
     const m = path.match(re);
     if (m) {
       view.innerHTML = '';
-      cleanup = fn(view, { params: m.slice(1), query }, { updateBadge }) || null;
+      cleanup = fn(view, { params: m.slice(1), query: new URLSearchParams(qs || '') }, { updateBadge }) || null;
       window.scrollTo(0, 0);
       return;
     }
@@ -100,49 +78,25 @@ function render() {
   view.innerHTML = `<div class="empty"><h3>Page introuvable</h3><a class="btn" href="#/">Accueil</a></div>`;
 }
 
-function buildNav() {
-  $('#nav').innerHTML = NAV.map(
-    (n) => `<a href="${n.href}" title="${n.label}">${icon(n.icon, 22)}<span>${n.label}</span>${n.badge ? '<b class="badge" data-badge hidden></b>' : ''}</a>`,
-  ).join('');
-}
-
-function setupMiniTimer() {
-  const el = $('#mini-timer');
-  onTick(() => {
-    const show = timer.running || (timer.remaining && timer.remaining < (state.settings.pomodoro[timer.mode] || 25) * 60e3);
-    el.hidden = !show;
-    if (show) el.innerHTML = `${icon('timer', 16)} <b>${fmt(timer.remaining)}</b> <small>${MODES[timer.mode]}${timer.running ? '' : ' (pause)'}</small>`;
-  });
-}
-
 async function init() {
   const firstRun = await load();
   applyTheme();
-  if (firstRun) await importPack('cejm').catch((e) => console.warn('Paquet CEJM', e));
-  for (const p of outdatedPacks()) {
-    try {
-      await importPack(p.id);
-      setTimeout(() => toast(`« ${p.title} » mis à jour`, 'success'), 800);
-    } catch (e) {
-      console.warn('Mise à jour du paquet', p.id, e);
-    }
+  if (firstRun || (state.migratedFrom && !packCourse('cejm'))) await importPack('cejm').catch((e) => console.warn('CEJM', e));
+  for (const p of outdatedPacks()) await importPack(p.id).catch(() => {});
+  if (state.migratedFrom) {
+    delete state.migratedFrom;
+    setTimeout(() => toast('Nouvelle version de ClaudeNote : tes cours ont été conservés ✨', 'success'), 600);
   }
-  migrateOrphanDecks();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-  buildNav();
-  setMode('work');
-  setupMiniTimer();
+  $('#nav').innerHTML = NAV.map((n) => `<a href="${n.href}">${icon(n.icon, 22)}<span>${n.label}</span>${n.badge ? '<b class="badge" data-badge hidden></b>' : ''}</a>`).join('');
   window.addEventListener('hashchange', render);
   onChange(updateBadge);
   render();
   updateBadge();
   startAutoRefresh();
-
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW', e));
-    navigator.serviceWorker.addEventListener('message', (e) => {
-      if (e.data?.hash) location.hash = e.data.hash;
-    });
+    navigator.serviceWorker.addEventListener('message', (e) => e.data?.hash && (location.hash = e.data.hash));
   }
 }
 

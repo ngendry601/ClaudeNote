@@ -1,15 +1,27 @@
-// Petit moteur Markdown sûr (tout est échappé avant transformation)
+// Moteur Markdown sûr (tout est échappé avant mise en forme) + schémas maison.
+//
+// En plus du Markdown classique (titres, listes, **gras**, *italique*, ==surligné==, `code`, tableaux, citations) :
+//   ```flux                       → étapes reliées par des flèches
+//   Faits -> Problème -> Règle -> Solution
+//   ```
+//   ```arbre                      → classification (indentation de 2 espaces)
+//   Contrat
+//     Formation
+//     Exécution
+//   ```
+//   ```matrice                    → grille 2×2 (SWOT, BCG…), cases séparées par |
+//   **Forces** : … | **Faiblesses** : …
+//   **Opportunités** : … | **Menaces** : …
+//   ```
+//   > ⚠️ …  /  > 💡 …  /  > 📌 …  → encadrés « piège », « astuce », « à retenir »
 import { esc } from './ui.js';
 
 const safeUrl = (u) => /^(https?:|mailto:|#|\/|\.\/)/i.test(u);
 
-export function inline(raw) {
+export function inline(raw = '') {
   let s = esc(raw);
   const codes = [];
-  s = s.replace(/`([^`]+)`/g, (_, c) => {
-    codes.push(c);
-    return `\u0000${codes.length - 1}\u0000`;
-  });
+  s = s.replace(/`([^`]+)`/g, (_, c) => (codes.push(c), `\u0000${codes.length - 1}\u0000`));
   s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (m, alt, url) => (safeUrl(url) ? `<img alt="${alt}" src="${url}" loading="lazy">` : m));
   s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, t, url) => (safeUrl(url) ? `<a href="${url}" target="_blank" rel="noopener">${t}</a>` : m));
   s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/__(.+?)__/g, '<strong>$1</strong>');
@@ -20,98 +32,101 @@ export function inline(raw) {
   return s;
 }
 
-// Couleurs de section façon « fiche de révision » (bandeaux colorés)
-const SECTION_COLORS = [
-  [/m[ée]thod/i, '#334155'],
-  [/[ée]conom/i, '#15803d'],
-  [/droit|juridi/i, '#b91c1c'],
-  [/manag|strat[ée]g/i, '#7e22ce'],
-  [/auteur|date|article/i, '#1f2937'],
-  [/pi[èe]ge|erreur/i, '#be123c'],
-  [/r[ée]seau|syst[èe]me|informati|d[ée]v|programm|algo/i, '#0369a1'],
-  [/math|calcul/i, '#c2410c'],
-];
-const PALETTE = ['#4338ca', '#0f766e', '#b45309', '#be185d', '#0369a1', '#4d7c0f', '#7e22ce', '#b91c1c'];
-export function sectionColor(name = '') {
-  if (!name) return '#4338ca';
-  for (const [re, c] of SECTION_COLORS) if (re.test(name)) return c;
-  let h = 0;
-  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return PALETTE[h % PALETTE.length];
-}
-export const cleanSection = (s = '') => s.replace(/^\s*\d+[.)]\s*/, '').replace(/\s*—\s*mots? à savoir.*$/i, '').trim();
-
-/** Parse un bloc de carte riche : lignes « !! » = piège, le reste = verso */
-export function parseCardBlock(lines) {
-  const back = [];
-  const traps = [];
-  for (const l of lines) {
-    const t = l.match(/^\s*!!\s*(.*)$/);
-    if (t) traps.push(t[1]);
-    else back.push(l);
-  }
-  return { back: back.join('\n').trim(), trap: traps.join(' ') };
+/* ---------- Schémas ---------- */
+function flowHtml(lines) {
+  const rows = lines.filter((l) => l.trim()).map((l) => l.split(/\s*(?:->|→|=>)\s*/).filter(Boolean));
+  return `<div class="flow">${rows
+    .map((nodes) => `<div class="flow-row">${nodes.map((n) => `<span class="flow-node">${inline(n)}</span>`).join('<span class="flow-arrow" aria-hidden="true">➜</span>')}</div>`)
+    .join('')}</div>`;
 }
 
-/** Une carte « fiche » contient des sous-titres ### : elle se lit comme une fiche de révision */
-export const isFiche = (back = '') => /^###\s/m.test(back);
-export const ficheTopics = (back = '') => [...back.matchAll(/^###\s+(.+)$/gm)].map((m) => m[1].trim());
-
-export function ficheHtml(title, back, trap, color) {
-  return `<section class="fiche" style="--fc:${color}"><h2 class="fiche-head">${inline(title)}</h2><div class="fiche-body md">${md(back)}</div>${
-    trap ? `<div class="fc-trap"><b>⚠️ Piège</b> ${inline(trap)}</div>` : ''
-  }</section>`;
+function treeHtml(lines) {
+  const items = lines
+    .filter((l) => l.trim())
+    .map((l) => {
+      const raw = l.replace(/\t/g, '  ');
+      const depth = Math.floor((raw.length - raw.trimStart().length) / 2);
+      return { depth, text: raw.trim().replace(/^[-*]\s+/, '') };
+    });
+  let i = 0;
+  const build = (depth) => {
+    let html = '<ul>';
+    while (i < items.length && items[i].depth >= depth) {
+      const it = items[i++];
+      html += `<li><span class="tree-node">${inline(it.text)}</span>`;
+      if (i < items.length && items[i].depth > it.depth) html += build(items[i].depth);
+      html += '</li>';
+    }
+    return html + '</ul>';
+  };
+  return `<div class="tree">${build(items[0]?.depth || 0)}</div>`;
 }
 
-export function cardBlockHtml(front, back, trap, color) {
-  if (isFiche(back)) return ficheHtml(front, back, trap, color);
-  return `<div class="fc-block" style="--fc:${color}"><div class="fc-q">${inline(front)}</div><div class="fc-a md">${md(back)}</div>${
-    trap ? `<div class="fc-trap"><b>⚠️ Piège</b> ${inline(trap)}</div>` : ''
-  }</div>`;
+function matrixHtml(lines) {
+  const rows = lines.filter((l) => l.trim()).map((l) => l.split('|').map((c) => c.trim()));
+  const cols = Math.max(...rows.map((r) => r.length));
+  let k = 0;
+  return `<div class="matrix" style="--cols:${cols}">${rows
+    .map((r) => r.map((c) => `<div class="matrix-cell m${k++ % 4}">${inline(c)}</div>`).join(''))
+    .join('')}</div>`;
 }
 
+const DIAGRAMS = { flux: flowHtml, schema: flowHtml, etapes: flowHtml, arbre: treeHtml, matrice: matrixHtml };
+
+/* ---------- Blocs ---------- */
 const isList = (l) => /^\s*([-*+]|\d+[.)])\s+/.test(l);
 const isTableRow = (l) => /^\s*\|.*\|\s*$/.test(l);
 const isTableSep = (l) => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l || '');
-const cardLine = (l) => !/`[^`]*::[^`]*`/.test(l) && l.match(/^\s*(?:[-*+]\s+|\d+[.)]\s+)?(.+?)\s*::\s*(.+)$/);
+const isBlockStart = (l, next) =>
+  /^```/.test(l) || /^#{1,6}\s/.test(l) || /^>/.test(l) || isList(l) || (isTableRow(l) && isTableSep(next)) || /^\s*(-{3,}|\*{3,})\s*$/.test(l);
 
-function isBlockStart(l, next) {
-  return /^```/.test(l) || /^:::\s+\S/.test(l) || /^#{1,6}\s/.test(l) || /^>/.test(l) || isList(l) || (isTableRow(l) && isTableSep(next)) || /^\s*(-{3,}|\*{3,})\s*$/.test(l);
+const CALLOUTS = [
+  [/^(⚠️|❗|🚫)/u, 'warn'],
+  [/^(💡|✨)/u, 'tip'],
+  [/^(📌|🎯|✅)/u, 'key'],
+];
+
+function listHtml(lines) {
+  // listes imbriquées selon l'indentation
+  const items = lines.map((l) => {
+    const raw = l.replace(/\t/g, '  ');
+    return { depth: Math.floor((raw.length - raw.trimStart().length) / 2), ordered: /^\s*\d+[.)]/.test(raw), text: raw.trim().replace(/^([-*+]|\d+[.)])\s+/, '') };
+  });
+  let i = 0;
+  const build = (depth) => {
+    const tag = items[i]?.ordered ? 'ol' : 'ul';
+    let html = `<${tag}>`;
+    while (i < items.length && items[i].depth >= depth) {
+      const it = items[i++];
+      const t = it.text.match(/^\[( |x|X)\]\s+(.*)$/);
+      html += t ? `<li class="task"><input type="checkbox" disabled ${t[1] !== ' ' ? 'checked' : ''}> ${inline(t[2])}` : `<li>${inline(it.text)}`;
+      if (i < items.length && items[i].depth > it.depth) html += build(items[i].depth);
+      html += '</li>';
+    }
+    return html + `</${tag}>`;
+  };
+  return build(items[0].depth);
 }
 
 export function md(src = '') {
-  const lines = src.replace(/\r/g, '').split('\n');
+  const lines = String(src).replace(/\r/g, '').split('\n');
   const out = [];
   let i = 0;
-  let section = '';
   while (i < lines.length) {
     const l = lines[i];
     let m;
-    if ((m = l.match(/^:::\s+(.+)$/))) {
-      const buf = [];
-      i++;
-      while (i < lines.length && !/^:::\s*$/.test(lines[i])) buf.push(lines[i++]);
-      i++;
-      const { back, trap } = parseCardBlock(buf);
-      out.push(cardBlockHtml(m[1].trim(), back, trap, sectionColor(section || m[1])));
-      continue;
-    }
-    if (/^```/.test(l)) {
-      const lang = l.slice(3).trim();
+    if ((m = l.match(/^```\s*([\w-]*)/))) {
+      const lang = m[1].toLowerCase();
       const buf = [];
       i++;
       while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
       i++;
-      out.push(`<pre data-lang="${esc(lang)}"><code>${esc(buf.join('\n'))}</code></pre>`);
+      out.push(DIAGRAMS[lang] ? DIAGRAMS[lang](buf) : `<pre data-lang="${esc(lang)}"><code>${esc(buf.join('\n'))}</code></pre>`);
       continue;
     }
     if ((m = l.match(/^(#{1,6})\s+(.*)$/))) {
       const n = m[1].length;
-      if (n === 2) {
-        section = cleanSection(m[2]);
-        out.push(`<h2 class="sec" style="--fc:${sectionColor(section)}">${inline(m[2])}</h2>`);
-      } else if (n === 3) out.push(`<h3 class="sub"${section ? ` style="--fc:${sectionColor(section)}"` : ''}>${inline(m[2])}</h3>`);
-      else out.push(`<h${n}>${inline(m[2])}</h${n}>`);
+      out.push(`<h${n} id="${headingId(m[2])}">${inline(m[2])}</h${n}>`);
       i++;
       continue;
     }
@@ -123,7 +138,8 @@ export function md(src = '') {
     if (/^>/.test(l)) {
       const buf = [];
       while (i < lines.length && /^>/.test(lines[i])) buf.push(lines[i++].replace(/^>\s?/, ''));
-      out.push(`<blockquote>${md(buf.join('\n'))}</blockquote>`);
+      const kind = CALLOUTS.find(([re]) => re.test(buf[0].trim()))?.[1];
+      out.push(kind ? `<div class="callout ${kind}">${md(buf.join('\n'))}</div>` : `<blockquote>${md(buf.join('\n'))}</blockquote>`);
       continue;
     }
     if (isTableRow(l) && isTableSep(lines[i + 1])) {
@@ -140,26 +156,13 @@ export function md(src = '') {
       continue;
     }
     if (isList(l)) {
-      const ordered = /^\s*\d+[.)]/.test(l);
-      const items = [];
-      while (i < lines.length && (isList(lines[i]) || (/^\s{2,}\S/.test(lines[i]) && items.length))) {
-        const cur = lines[i++];
-        if (isList(cur)) items.push(cur.replace(/^\s*([-*+]|\d+[.)])\s+/, ''));
-        else items[items.length - 1] += ' ' + cur.trim();
+      const buf = [];
+      while (i < lines.length && (isList(lines[i]) || (/^\s{2,}\S/.test(lines[i]) && buf.length))) {
+        if (isList(lines[i])) buf.push(lines[i]);
+        else buf[buf.length - 1] += ' ' + lines[i].trim();
+        i++;
       }
-      const lis = items.map((it) => {
-        const c = !/`[^`]*::[^`]*`/.test(it) && it.match(/^(.+?)\s*::\s*(.+)$/);
-        if (c) return `<li class="md-card-li"><span class="md-card"><b>${inline(c[1])}</b><span>${inline(c[2])}</span></span></li>`;
-        const t = it.match(/^\[( |x|X)\]\s+(.*)$/);
-        if (t) return `<li class="task"><input type="checkbox" disabled ${t[1] !== ' ' ? 'checked' : ''}> ${inline(t[2])}</li>`;
-        return `<li>${inline(it)}</li>`;
-      });
-      out.push(ordered ? `<ol>${lis.join('')}</ol>` : `<ul>${lis.join('')}</ul>`);
-      continue;
-    }
-    if ((m = cardLine(l))) {
-      out.push(`<p><span class="md-card"><b>${inline(m[1])}</b><span>${inline(m[2])}</span></span></p>`);
-      i++;
+      out.push(listHtml(buf));
       continue;
     }
     if (!l.trim()) {
@@ -173,10 +176,16 @@ export function md(src = '') {
   return out.join('\n');
 }
 
+const headingId = (t) => 'h-' + t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50);
+
 export const stripMd = (s = '') =>
-  s
+  String(s)
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/[#>*_`~|=]+|-{2,}/g, ' ')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();
+
+/** Titres ## et ### d'un texte, pour le sommaire */
+export const outline = (src = '') =>
+  [...String(src).matchAll(/^(#{2,3})\s+(.+)$/gm)].map((m) => ({ level: m[1].length, text: m[2].replace(/[*_=`]/g, ''), id: headingId(m[2]) }));

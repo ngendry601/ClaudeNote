@@ -1,0 +1,648 @@
+{
+ "title": "CEJM — BTS SIO",
+ "subject": "CEJM",
+ "course": "## 1. Méthodes de l'épreuve (4 h)\n\n### Question juridique\nSyllogisme : **FAITS → PROBLÈME → RÈGLE → SOLUTION**\n\n1. **Faits** : qui contre qui, que s'est-il passé, qualifiés juridiquement (« M. X, acheteur » ; « la société Y, prestataire »). Pas de recopie du document.\n2. **Problème de droit** : une question générale sans les noms (« Un mensonge déterminant permet-il d'annuler un contrat ? »).\n3. **Règle de droit** : article + conditions énumérées (« Selon l'art. 1137 C. civ., le dol suppose… »).\n4. **Solution** : on applique chaque condition aux faits puis on conclut oui / non : « donc M. X peut demander la nullité ».\n\n### Question d'analyse\n- Notion définie → fait précis du doc (n° du doc) → conclusion. Sans fait du dossier = moitié des points.\n- Verbes : **identifier** = nommer ; **qualifier** = donner le nom juridique / la catégorie ; **caractériser** = décrire les traits ; **analyser** = expliquer et justifier ; **justifier** = prouver avec le doc.\n\n### Calculs\n- **Taux d'évolution** = (V arrivée − V départ) / V départ × 100 (toujours diviser par le départ).\n- **Part** = partie / total × 100 · **VA** = CA − consommations intermédiaires · **Seuil d'abonnement** = coût annuel / prix unitaire, arrondi à l'entier supérieur · mensuel × 12 = annuel.\n- Toujours : formule → calcul posé → résultat + unité → phrase d'interprétation.\n\n### Développement structuré (argumentation)\n- **Intro** : accroche, définitions des mots du sujet, problématique, annonce du plan.\n- « Est-ce… ? » → plan **oui / mais** (dialectique) ; « En quoi… ? » → plan **thématique**.\n- 2 parties × 2 sous-parties. Chaque argument = **notion + exemple** (doc ou culture éco). **Conclusion** nuancée + ouverture.\n\n## 2. Économie — mots à savoir par cœur\n\n### Agents et circuit\n- **Agent économique** : centre de décision autonome. **Ménages** (consommer, épargner), **entreprises** (produire), **administrations** (services non marchands, redistribuer), **banques / assurances** (financer, couvrir), **ISBLSM / associations**, **reste du monde**.\n- **Circuit économique** : flux réels (biens, travail) en sens inverse des flux monétaires (salaires, paiements, impôts).\n- **Valeur ajoutée** = CA − consommations intermédiaires. Partagée : salariés (salaires), État (impôts), prêteurs (intérêts), actionnaires (dividendes), entreprise (autofinancement).\n- **PIB** = somme des VA produites sur le territoire en 1 an.\n- **Financement** : **autofinancement** (CAF) · **indirect** = crédit bancaire, la banque est intermédiaire · **direct** = actions, obligations, levée de fonds auprès d'investisseurs (marché financier si cotée).\n\n### Marché et concurrence\n- **Marché** : rencontre offre / demande → **prix d'équilibre**. Demande ↑ ou offre ↓ → prix ↑.\n- **Concurrence pure et parfaite (5 conditions)** : atomicité, homogénéité des produits, libre entrée / sortie, transparence de l'information, mobilité des facteurs.\n- **Monopole** (1 offreur, fixe le prix) · **oligopole** (quelques offreurs, risque d'entente) · **concurrence monopolistique** (produits différenciés).\n- **Barrière à l'entrée** : obstacle (capital, brevet, réglementation, effet de réseau) qui empêche un nouvel entrant.\n- **Économies d'échelle** : le coût unitaire baisse quand la quantité produite augmente. **Coût marginal** = coût d'une unité de plus.\n\n### Défaillances du marché\n- **Externalité** : effet (positif ou négatif) de l'activité d'un agent sur un autre **sans compensation par le prix**.\n- **Négative** : pollution d'une usine, CO2, eau et électricité des data centers. **Positive** : formation des salariés qui profite à d'autres entreprises, chaleur récupérée d'un data center, recherche, vaccination.\n- **Internaliser** une externalité négative : **taxe** (pollueur-payeur, taxe pigouvienne), **norme** / interdiction, **marché de quotas** (droits à polluer). Positive : **subvention**.\n- **Asymétrie d'information** : une partie en sait plus que l'autre (vendeur de voiture d'occasion). → **antisélection** (avant contrat) et **aléa moral** (après contrat). Réponse : garantie, label, obligation d'information.\n- **Bien collectif** : non rival + non exclusif (éclairage public, défense) → produit par l'État.\n- **Effet de réseau** : un utilisateur de plus augmente la valeur pour tous (direct) ou pour l'autre face (croisé).\n\n### État et régulation\n- **Musgrave — 3 fonctions** : **allocation** (biens collectifs), **redistribution** (réduire les inégalités), **stabilisation** (croissance, emploi, prix).\n- **Politique budgétaire** (État : dépenses, impôts) · **politique monétaire** (BCE : taux directeurs, objectif inflation 2 %).\n- **Régulation** : action publique qui encadre un marché (Autorité de la concurrence, ARCEP, CNIL).\n\n### Numérique\n- **Dématérialisation** : support physique → flux numérique · **automatisation** : traitement sans humain (format structuré). PDF par mail = dématérialisé, pas automatisé.\n- **Désintermédiation** : un intermédiaire disparaît · **réintermédiation** : un nouveau arrive (plateforme, Spotify, plateforme agréée de e-facture).\n- **Plateforme / marché biface** : sert 2 groupes, une face paie, l'autre souvent gratuite (Doctolib). **Place de marché** : met en relation vendeurs tiers et acheteurs.\n- **Freemium** (gratuit + premium, indicateur = **taux de conversion**), abonnement, publicité, commission. **Prosommateur** (Toffler) : consommateur qui produit. **Économie collaborative** ; **économie de l'usage** (usage > propriété).\n- **Licorne** : start-up non cotée > 1 Md$ · **décacorne** > 10 Md$. Valorisation ≠ CA.\n- **B to B, B to C, C to C, B to G, G to C** : selon le statut de l'acteur.\n\n### Travail et mondialisation\n- **Chômage** frictionnel (transition), conjoncturel (crise), structurel (inadéquation compétences). **Polarisation** de l'emploi.\n- **Flexibilité** quantitative externe (CDD, intérim) / interne (horaires) / qualitative (polyvalence) / salariale / externalisation.\n- **Destruction créatrice** (Schumpeter) · **déversement** (Sauvy). Innovation de produit, procédé, organisation, commercialisation.\n- **FMN**, **IDE** (filiale à l'étranger), **DIPP** / chaîne de valeur mondiale. Compétitivité **prix** (coûts, change) et **hors prix** (qualité, innovation, image).\n\n## 3. Droit — mots à savoir par cœur\n\n### Bases\n- **Hiérarchie des normes** : Constitution > traités / droit UE > lois > règlements > contrats. + jurisprudence, conventions collectives.\n- **Personne physique / personne morale** (société, association) : titulaire de droits, patrimoine propre.\n- **Droit objectif** (règles) / **droits subjectifs** (prérogatives d'une personne : droits patrimoniaux, extrapatrimoniaux).\n\n### Le contrat — formation\n- **Contrat** : accord de volontés qui crée des obligations (art. 1101). **Liberté contractuelle** (1102) dans le respect de l'ordre public.\n- **Pourparlers** : libres, **bonne foi** (1104), **obligation d'information** (1112-1), **confidentialité** (1112-2). Rupture abusive = responsabilité extracontractuelle.\n- **Avant-contrats** : pacte de préférence, promesse unilatérale, promesse synallagmatique.\n- **Offre** (précise + ferme) + **acceptation** = contrat formé.\n- **Validité (1128) — 3 conditions** : consentement des parties, capacité de contracter, contenu licite et certain.\n- **Vices du consentement (1130)** : **erreur** (sur les qualités essentielles, excusable) · **dol** (1137 : manœuvres, mensonge ou silence volontaire pour tromper, déterminant) · **violence** (contrainte physique ou morale, y compris abus de dépendance économique 1143).\n- **Nullité** : sanction d'une condition de formation → le contrat est censé n'avoir jamais existé (restitutions). **Relative** (protège une partie : vice du consentement, 5 ans) / **absolue** (intérêt général : contenu illicite).\n\n### Le contrat — effets et inexécution\n- **Force obligatoire** (1103) : le contrat « tient lieu de loi ». Modification d'un commun accord (1193). **Imprévision** (1195) : changement imprévisible → renégociation. **Effet relatif** : n'engage que les parties.\n- **Clause pénale** : indemnité forfaitaire fixée d'avance (réductible par le juge si excessive) · **limitative de responsabilité** : plafonne les dommages et intérêts (écartée si faute lourde ou dolosive ou si elle vide l'obligation essentielle, art. 1170) · **réserve de propriété** : propriété transférée au paiement complet · **résolutoire** : fin automatique si inexécution · **attributive de compétence** : tribunal choisi (entre commerçants) · **confidentialité**, **non-concurrence**, **indexation**.\n- **Inexécution (1217) — 5 sanctions** : exception d'inexécution, exécution forcée, réduction du prix, résolution (fin du contrat), dommages et intérêts.\n- **Résolution ≠ nullité** : résolution = problème d'exécution ; nullité = problème de formation.\n- **Obligation de moyens** (tout faire, faute à prouver) / **de résultat** (le résultat seul compte). Prestataire informatique : souvent moyens + **obligation de conseil**.\n\n### Responsabilité civile\n- **3 conditions** : fait générateur + dommage (certain, direct, personnel) + lien de causalité.\n- **Contractuelle** : inexécution d'un contrat. **Extracontractuelle** : faute (1240), négligence (1241), fait des choses / des personnes dont on répond, ex. l'employeur pour ses salariés (1242).\n- **Exonération** : force majeure (imprévisible, irrésistible, extérieure), faute de la victime, fait d'un tiers.\n- **Responsabilité pénale** : infraction punie par la loi (amende, prison) ; personne morale aussi responsable.\n\n### Propriété intellectuelle\n\n| Droit | Protège | Conditions | Durée / formalité |\n|---|---|---|---|\n| **Droit d'auteur** | œuvre de l'esprit, logiciel, site web | originalité + forme (pas les idées) | dès la création, sans dépôt ; patrimonial 70 ans après la mort ; droit moral perpétuel |\n| **Brevet** | invention technique | nouveauté, activité inventive, application industrielle | dépôt INPI, 20 ans, redevances annuelles |\n| **Marque** | signe distinctif (nom, logo, son) | distinctive, licite, disponible | dépôt INPI, 10 ans, renouvelable à l'infini |\n| **Dessins, modèles** | apparence d'un produit | nouveauté, caractère propre | 5 ans renouvelables, max 25 ans |\n| **Base de données** | le travail du producteur | gros investissement | 15 ans (droit sui generis) |\n\n- **Logiciel** : protégé par le droit d'auteur, pas par brevet en principe. Créé par un salarié dans ses fonctions → droits à l'employeur.\n- **Exploiter** : **cession** (on vend le droit) ou **licence** (on autorise l'usage contre redevance). Logiciel libre (GPL…).\n- **Contrefaçon** : atteinte à un droit de PI → sanction civile (dommages et intérêts) et pénale (jusqu'à 3 ans et 300 000 €). Sans droit de PI → action en **concurrence déloyale** (1240 : dénigrement, confusion, parasitisme).\n\n### Numérique et données\n- **Donnée personnelle** : identifie une personne directement ou indirectement (nom, IP, photo). **Donnée sensible** (art. 9) : santé, origine, opinions, religion, syndicat, biométrie, vie sexuelle → interdite sauf exception.\n- **Principes RGPD** : licéité, finalité, minimisation, exactitude, durée de conservation limitée, sécurité, responsabilité (accountability, registre des traitements). Consentement libre et éclairé.\n- **Droits** : accès, rectification, effacement (oubli), opposition, portabilité, limitation. Responsable de traitement, sous-traitant, DPO, CNIL. Sanction : 4 % du CA mondial ou 20 M€. Violation de données = notification CNIL sous 72 h.\n- **Contrats informatiques** : licence, maintenance, infogérance, SaaS / cloud, **SLA** (niveau de service : disponibilité, temps de réponse / rétablissement, pénalités).\n- **Preuve électronique** (1366) : même valeur que le papier si auteur identifié + intégrité. Signature électronique (eIDAS).\n- **Cybercriminalité** : accès / maintien frauduleux dans un STAD (art. 323-1 C. pén.). NIS2, DMA (contrôleurs d'accès, a priori, 10 % CA), DSA (contenus).\n\n### Concurrence\n- **Entente** (L420-1) et **abus de position dominante** (L420-2) interdits. Position dominante = légale, c'est l'abus qui est sanctionné (vente liée, exclusivité, prix prédateurs). Contrôle des concentrations. Autorité de la concurrence (a posteriori, amende).\n\n### Sociétés et travail\n- **EI** (patrimoine pro séparé depuis 2022) · **EURL/SARL** (gérant, responsabilité limitée aux apports) · **SAS/SASU** (statuts libres, président) · **SA** (37 000 € min., cotable).\n- **Contrat de travail** = prestation + rémunération + lien de subordination. Requalification d'un indépendant (Uber 2020). CDI, CDD / intérim (cas limités), apprentissage.\n- **Pouvoirs de l'employeur** : direction, réglementaire (règlement intérieur ≥ 50 salariés), disciplinaire. **Rupture** : démission, licenciement (cause réelle et sérieuse), rupture conventionnelle. Télétravail, droit à la déconnexion, CSE ≥ 11 salariés, convention collective.\n\n## 4. Management — mots à savoir par cœur\n\n### Organisation et finalités\n- **Finalités** : économique (profit, pérennité), sociale (emploi), sociétale (**RSE** : intégrer volontairement les enjeux sociaux et environnementaux). Drucker : profit = conséquence de la satisfaction client.\n- **Partie prenante** (Freeman) : acteur qui affecte ou est affecté par l'entreprise. Internes / externes. **Mendelow** : pouvoir × intérêt.\n- **Gouvernance** : actionnariale / partenariale. **Loi PACTE 2019** : raison d'être, société à mission. **Devoir de vigilance** 2017, **CSRD**.\n- **ESS** (associations, coopératives, mutuelles). Taille : TPE < 10, PME < 250, ETI < 5 000.\n- **Logique entrepreneuriale** (opportunité, risque, innovation) / **managériale** (planifier, organiser, diriger, contrôler).\n- **Structures** : simple, fonctionnelle, divisionnelle, matricielle, en réseau / par projet. **Coordination** (Mintzberg) : ajustement mutuel, supervision directe, standardisation.\n- **Performance** : **efficace** (objectif atteint), **efficient** (avec moins de ressources), **pertinent** (moyens adaptés). Performance globale. Tableau de bord, KPI.\n\n### Décision\n- **Ansoff — 3 niveaux** : **stratégique** (long terme, direction, irréversible, rare) / **tactique** (moyen terme, cadres) / **opérationnelle** (court terme, quotidienne, réversible). Citer 3 critères.\n- **Simon — IMC** : Intelligence (problème, infos), Modélisation (solutions), Choix. **Rationalité limitée** → solution satisfaisante pas optimale. Facteurs de contingence internes / externes.\n\n### Stratégie — démarche et diagnostic\n- **Stratégie** : choix à long terme qui engagent l'entreprise pour atteindre ses buts et obtenir un avantage concurrentiel durable. Finalité > but > **objectif** (précis, chiffré, daté).\n- **LCAG 1965** : diagnostic → choix → mise en œuvre → contrôle (boucle). **Mintzberg** : délibérée + émergente = réalisée.\n- **PESTEL** (macro, indirect) : Politique, Économique, Socioculturel, Technologique, Écologique, Légal → O / M.\n- **5 forces de Porter 1979** (micro, secteur) : rivalité, nouveaux entrants, substituts, pouvoir des clients, pouvoir des fournisseurs (+ État). Forces fortes = secteur peu attractif.\n- **Ressources** (Penrose) tangibles / intangibles · **compétence distinctive** (Hamel et Prahalad) : valeur perçue, rare, difficile à imiter.\n- **Chaîne de valeur 1985** : 5 principales (logistique amont, production, logistique aval, vente, services) + 4 soutien (infrastructure, GRH, développement technologique / SI, achats).\n- **FCS** : ce qu'il faut maîtriser pour réussir sur un marché. **SWOT** : forces / faiblesses (internes) + opportunités / menaces (externes).\n\n### Stratégie — choix\n- Spécialisation · diversification **liée** (synergies) / **conglomérale** (sans lien) · recentrage · intégration verticale amont / aval · externalisation (→ SLA).\n- **Matrice d'Ansoff** : pénétration, développement de produits, développement de marchés, diversification.\n- **DAS** : produits avec mêmes clients, concurrents, FCS. **Porter** : domination par les coûts, différenciation, focalisation (niche). Risque : enlisement.\n- **BCG** (croissance du marché × part relative) : vedette, vache à lait, dilemme, poids mort.\n- **Croissance interne** (organique, lente, contrôlée) / **externe** (fusion, acquisition, rapide, coûteuse) / **conjointe** (alliance, joint-venture, franchise).\n- **Internationalisation** : exportation, IDE (investissement direct à l'étranger), contractuelle (licence, franchise).\n\n### Ressources humaines\n- **Maslow** : physiologique, sécurité, appartenance, estime, accomplissement · **Herzberg** : facteurs d'hygiène (évitent l'insatisfaction) / moteurs (motivent).\n- **Likert** : autoritaire, paternaliste, consultatif, participatif. GEPP, formation, marque employeur, fidélisation, QVCT.\n\n## 5. Auteurs et dates\n\n| Auteur | Idée |\n|---|---|\n| Penrose 1959 | ressources |\n| Ansoff 1965 | niveaux de décision, matrice |\n| LCAG 1965 | démarche stratégique |\n| Simon | IMC, rationalité limitée |\n| Porter 1979 / 1985 | 5 forces / chaîne de valeur, 3 stratégies |\n| Freeman 1984 | parties prenantes |\n| Mintzberg 1989 | délibérée / émergente, coordination |\n| Hamel et Prahalad 1990 | compétences distinctives |\n| Schumpeter | destruction créatrice, innovation |\n| Sauvy | déversement |\n| Toffler | prosommateur |\n| Drucker | profit = satisfaction client |\n| Musgrave | 3 fonctions de l'État |\n| Maslow / Herzberg / Likert | motivation / styles de direction |\n\n**Articles C. civ.** : 1101 contrat · 1102 liberté · 1103 force obligatoire · 1104 bonne foi · 1112-1 information · 1128 validité · 1130 vices · 1137 dol · 1143 dépendance · 1170 obligation essentielle · 1195 imprévision · 1217 inexécution · 1240-1242 responsabilité · 1366 écrit électronique. **C. com.** L420-1 entente, L420-2 abus. **C. pén.** 323-1 STAD.\n\n## 6. Pièges à ne pas faire\n- Concurrents dans le PESTEL → **non, 5 forces**.\n- Faiblesse (**interne**) ≠ menace (**externe**) : le critère est l'origine, pas le négatif.\n- Ressource (ce qu'on a) ≠ compétence (ce qu'on sait faire) ≠ FCS (exigence du marché).\n- Nullité (formation) ≠ résolution (exécution). Dol = nullité, pas résolution.\n- Clause pénale (forfait) ≠ clause limitative (plafond).\n- Logiciel = droit d'auteur, pas brevet. Marque 10 ans renouvelables ≠ brevet 20 ans non renouvelable.\n- Externalité = **sans compensation par le prix**.\n- Position dominante légale ; **abus** sanctionné.\n- Dématérialisation ≠ automatisation ; désintermédiation ≠ réintermédiation.\n- CA ≠ volume de transactions ≠ valorisation. Taux d'évolution : diviser par la **valeur de départ**.\n- Objectif = **chiffré et daté** ; sinon c'est un but.\n- Toujours un **fait du document** dans chaque réponse.",
+ "flashcards": [
+  {
+   "front": "Comment rédiger une question juridique ?",
+   "back": "==Le syllogisme, en 4 étapes==\n\n```flux\nFaits -> Problème de droit -> Règle -> Solution\n```\n\n| Étape | Ce que j'écris |\n|---|---|\n| **Faits** | Qui contre qui, faits **qualifiés** (« M. X, acheteur ») |\n| **Problème** | Une question **générale, sans les noms** |\n| **Règle** | L'article + ses **conditions** |\n| **Solution** | Chaque condition appliquée aux faits → **oui / non** |\n\n> ⚠️ **Piège :** ne jamais recopier le document dans les faits."
+  },
+  {
+   "front": "Comment répondre à une question d'analyse ?",
+   "back": "```flux\nNotion définie -> Fait précis du doc (n°) -> Conclusion\n```\n\n| Verbe de la consigne | Ce qu'on attend |\n|---|---|\n| **Identifier** | nommer |\n| **Qualifier** | donner le nom juridique / la catégorie |\n| **Caractériser** | décrire les traits |\n| **Analyser** | expliquer et justifier |\n| **Justifier** | prouver avec le document |\n\n> ⚠️ **Piège :** sans fait du dossier, c'est la moitié des points."
+  },
+  {
+   "front": "Quelles formules de calcul connaître ?",
+   "back": "| Calcul | Formule |\n|---|---|\n| **Taux d'évolution** | (V arrivée − V départ) / ==V départ== × 100 |\n| **Part** | partie / total × 100 |\n| **Valeur ajoutée** | CA − consommations intermédiaires |\n| **Seuil d'abonnement** | coût annuel / prix unitaire → **arrondi au-dessus** |\n| **Annuel** | mensuel × 12 |\n\n```flux\nFormule -> Calcul posé -> Résultat + unité -> Phrase d'interprétation\n```\n\n> 💡 **Exemple :** CA de 200 000 € à 250 000 € → 50 000 / 200 000 × 100 = **+25 %**."
+  },
+  {
+   "front": "Comment construire le développement structuré ?",
+   "back": "| Le sujet commence par… | Plan à faire |\n|---|---|\n| « Est-ce… ? » | **oui / mais** (dialectique) |\n| « En quoi… ? » | **thématique** |\n\n```arbre\nDéveloppement structuré\n  Introduction : accroche, définitions, problématique, annonce du plan\n  2 parties × 2 sous-parties : chaque argument = notion + exemple\n  Conclusion : réponse nuancée + ouverture\n```"
+  },
+  {
+   "front": "Qui sont les agents économiques et comment la VA est-elle partagée ?",
+   "back": "**Agent économique** = centre de décision autonome.\n\n| Agent | Rôle |\n|---|---|\n| Ménages | consommer, épargner |\n| Entreprises | produire |\n| Administrations | services non marchands, redistribuer |\n| Banques / assurances | financer, couvrir |\n\n==VA = CA − consommations intermédiaires==, partagée entre salariés (salaires), État (impôts), prêteurs (intérêts), actionnaires (dividendes) et l'entreprise (autofinancement).\n\n**PIB** = somme des VA produites sur le territoire en 1 an."
+  },
+  {
+   "front": "Comment une entreprise se finance-t-elle ?",
+   "back": "| Financement | Comment | Exemple |\n|---|---|---|\n| **Autofinancement** | avec ses propres bénéfices (CAF) | réinvestir ses profits |\n| **Indirect** | la **banque** sert d'intermédiaire | crédit bancaire |\n| **Direct** | auprès des investisseurs, sans intermédiaire | actions, obligations, levée de fonds |\n\n> 💡 Si l'entreprise est cotée, le financement direct passe par le **marché financier**."
+  },
+  {
+   "front": "Comment fonctionne la concurrence sur un marché ?",
+   "back": "**Marché** = offre + demande → ==prix d'équilibre==. Demande ↑ ou offre ↓ → prix ↑.\n\n**Concurrence pure et parfaite (5 conditions)** : atomicité · homogénéité des produits · libre entrée / sortie · transparence · mobilité des facteurs.\n\n| Structure | Caractéristique |\n|---|---|\n| **Monopole** | 1 offreur, il fixe le prix |\n| **Oligopole** | quelques offreurs, risque d'**entente** |\n| **Concurrence monopolistique** | produits **différenciés** |\n\n**Barrière à l'entrée** : capital, brevet, réglementation, effet de réseau."
+  },
+  {
+   "front": "Quelles sont les défaillances du marché ?",
+   "back": "| Défaillance | Définition | Exemple | Solution |\n|---|---|---|---|\n| **Externalité** | effet sur autrui ==sans compensation par le prix== | pollution (−), formation (+) | taxe, norme, quotas / subvention |\n| **Asymétrie d'info** | une partie en sait plus | voiture d'occasion | garantie, label |\n| **Bien collectif** | non rival + non exclusif | éclairage public | produit par l'État |\n\n> 📌 Asymétrie : **antisélection** = avant le contrat · **aléa moral** = après."
+  },
+  {
+   "front": "Quel est le rôle de l'État dans l'économie ?",
+   "back": "**Musgrave : 3 fonctions**\n\n| Fonction | But |\n|---|---|\n| **Allocation** | fournir les biens collectifs |\n| **Redistribution** | réduire les inégalités |\n| **Stabilisation** | croissance, emploi, prix |\n\n| Politique | Qui | Outils |\n|---|---|---|\n| **Budgétaire** | l'État | dépenses, impôts |\n| **Monétaire** | la BCE | taux directeurs, objectif ==inflation 2 %== |\n\n**Régulation** : Autorité de la concurrence, ARCEP, CNIL."
+  },
+  {
+   "front": "Numérique : quelles notions ne pas confondre ?",
+   "back": "| Notion | Ce que ça veut dire |\n|---|---|\n| **Dématérialisation** | papier → numérique (PDF par mail) |\n| **Automatisation** | traitement **sans humain** |\n| **Désintermédiation** | un intermédiaire **disparaît** |\n| **Réintermédiation** | un **nouvel** intermédiaire arrive (plateforme) |\n| **Marché biface** | 2 groupes, une face gratuite (Doctolib) |\n| **Freemium** | gratuit + premium → **taux de conversion** |\n| **Licorne** | start-up non cotée > 1 Md$ |\n\n> ⚠️ **Piège :** un PDF envoyé par mail est dématérialisé, **pas** automatisé."
+  },
+  {
+   "front": "Travail et innovation : l'essentiel",
+   "back": "| Chômage | Cause |\n|---|---|\n| **Frictionnel** | transition entre 2 emplois |\n| **Conjoncturel** | crise économique |\n| **Structurel** | compétences inadaptées |\n\n**Flexibilité** : quantitative externe (CDD, intérim) · interne (horaires) · qualitative (polyvalence).\n\n```flux\nInnovation -> Destruction créatrice (Schumpeter) -> Déversement des emplois (Sauvy)\n```\n\nCompétitivité **prix** (coûts, change) / **hors prix** (qualité, innovation, image)."
+  },
+  {
+   "front": "Quelles conditions pour qu'un contrat soit valable ?",
+   "back": "==Offre (précise + ferme) + acceptation = contrat formé==\n\n```arbre\nValidité du contrat (art. 1128)\n  Consentement des parties\n    Vices (1130) : erreur, dol (1137), violence (1143)\n  Capacité de contracter\n  Contenu licite et certain\n```\n\n| Nullité | Protège | Exemple |\n|---|---|---|\n| **Relative** | une partie | vice du consentement (5 ans) |\n| **Absolue** | l'intérêt général | contenu illicite |\n\n> 📌 Nullité = le contrat est censé **n'avoir jamais existé** (restitutions)."
+  },
+  {
+   "front": "Que faire quand un contrat n'est pas exécuté ?",
+   "back": "**Les 5 sanctions de l'inexécution (art. 1217)**\n1. Exception d'inexécution\n2. Exécution forcée\n3. Réduction du prix\n4. **Résolution** (fin du contrat)\n5. Dommages et intérêts\n\n| | Nullité | Résolution |\n|---|---|---|\n| Problème | **formation** | **exécution** |\n| Exemple | dol | non-livraison |\n\n> ⚠️ **Piège :** le dol entraîne la **nullité**, pas la résolution."
+  },
+  {
+   "front": "Quelles clauses du contrat connaître ?",
+   "back": "| Clause | Effet |\n|---|---|\n| **Pénale** | indemnité **forfaitaire** fixée d'avance |\n| **Limitative de responsabilité** | **plafonne** les dommages et intérêts |\n| **Réserve de propriété** | propriété transférée au paiement complet |\n| **Résolutoire** | fin automatique si inexécution |\n| **Attributive de compétence** | tribunal choisi (entre commerçants) |\n\n> ⚠️ **Piège :** la clause limitative est écartée en cas de **faute lourde ou dolosive** (art. 1170).\n\n**Obligation de moyens** (faute à prouver) / **de résultat** (seul le résultat compte)."
+  },
+  {
+   "front": "Quand engage-t-on sa responsabilité civile ?",
+   "back": "```flux\nFait générateur + Dommage + Lien de causalité -> Réparation (dommages et intérêts)\n```\n\n| Responsabilité | Cas |\n|---|---|\n| **Contractuelle** | inexécution d'un contrat |\n| **Extracontractuelle** | faute (1240), négligence (1241), fait d'autrui / des choses (1242) |\n\n**Exonération** : force majeure (==imprévisible, irrésistible, extérieure==), faute de la victime, fait d'un tiers."
+  },
+  {
+   "front": "Comment protéger une création (propriété intellectuelle) ?",
+   "back": "| Droit | Protège | Durée |\n|---|---|---|\n| **Droit d'auteur** | œuvre, **logiciel**, site web | sans dépôt, 70 ans après la mort |\n| **Brevet** | invention technique | dépôt INPI, 20 ans |\n| **Marque** | nom, logo, son | INPI, 10 ans **renouvelables** |\n| **Dessins et modèles** | apparence d'un produit | 5 ans, max 25 ans |\n| **Base de données** | investissement du producteur | 15 ans |\n\n> ⚠️ **Piège :** un logiciel est protégé par le **droit d'auteur**, pas par un brevet. Créé par un salarié → droits à l'**employeur**."
+  },
+  {
+   "front": "RGPD : que faut-il retenir ?",
+   "back": "**Donnée personnelle** : identifie une personne (nom, IP, photo). **Sensible** : santé, opinions, religion, syndicat, biométrie… → ==interdite sauf exception==.\n\n| Principes | Droits des personnes |\n|---|---|\n| licéité, **finalité**, **minimisation** | accès, rectification |\n| exactitude, durée limitée | effacement, opposition |\n| sécurité, accountability | **portabilité**, limitation |\n\n> 📌 Sanction : **4 % du CA mondial ou 20 M€**. Fuite de données → CNIL sous **72 h**."
+  },
+  {
+   "front": "Concurrence, sociétés et travail : l'essentiel",
+   "back": "**Interdits** : entente (L420-1) et **abus** de position dominante (L420-2).\n\n| Forme | Particularité |\n|---|---|\n| **EI** | patrimoine pro séparé (depuis 2022) |\n| **EURL / SARL** | gérant, responsabilité limitée aux apports |\n| **SAS / SASU** | statuts libres, président |\n| **SA** | 37 000 € minimum, cotable |\n\n**Contrat de travail** = prestation + rémunération + ==lien de subordination== (requalification possible : Uber 2020).\n\n> ⚠️ **Piège :** être en position dominante est **légal**, seul l'abus est sanctionné."
+  },
+  {
+   "front": "Organisation et décision : l'essentiel",
+   "back": "**Finalités** : économique · sociale · sociétale (RSE). **Partie prenante** (Freeman) : affecte ou est affectée par l'entreprise.\n\n| Niveau (Ansoff) | Horizon | Exemple |\n|---|---|---|\n| **Stratégique** | long terme, irréversible | s'implanter à l'étranger |\n| **Tactique** | moyen terme | choisir un fournisseur |\n| **Opérationnel** | court terme, réversible | planning de la semaine |\n\n```flux\nIntelligence -> Modélisation -> Choix\n```\nSimon (IMC) : **rationalité limitée** → solution satisfaisante, pas optimale."
+  },
+  {
+   "front": "Comment faire le diagnostic stratégique ?",
+   "back": "```flux\nDiagnostic -> Choix -> Mise en œuvre -> Contrôle\n```\n(démarche LCAG, en boucle)\n\n```matrice\n**Forces** : interne, positif | **Faiblesses** : interne, négatif\n**Opportunités** : externe, positif | **Menaces** : externe, négatif\n```\n\n| Outil | Analyse |\n|---|---|\n| **PESTEL** | environnement **macro** (Politique, Éco, Socio, Techno, Écolo, Légal) |\n| **5 forces de Porter** | le **secteur** : rivalité, entrants, substituts, clients, fournisseurs |\n\n> ⚠️ **Piège :** les concurrents vont dans les 5 forces, **jamais** dans le PESTEL."
+  },
+  {
+   "front": "Quels choix stratégiques une entreprise peut-elle faire ?",
+   "back": "**Matrice d'Ansoff** (produits × marchés)\n```matrice\n**Pénétration** : produit actuel, marché actuel | **Développement de produits** : nouveau produit\n**Développement de marchés** : nouveau marché | **Diversification** : nouveau produit + nouveau marché\n```\n\n**Matrice BCG**\n```matrice\n**Vedette** : forte croissance, forte part | **Dilemme** : forte croissance, faible part\n**Vache à lait** : faible croissance, forte part | **Poids mort** : faible croissance, faible part\n```\n\n**Porter** : coûts · différenciation · focalisation. **Croissance** : interne (lente) · externe (rachat, rapide) · conjointe (alliance)."
+  },
+  {
+   "front": "Quels auteurs citer et pour quoi ?",
+   "back": "| Auteur | Idée |\n|---|---|\n| **Penrose** (1959) | ressources |\n| **Ansoff** (1965) | niveaux de décision, matrice |\n| **Simon** | rationalité limitée (IMC) |\n| **Porter** (1979 / 1985) | 5 forces, chaîne de valeur |\n| **Freeman** (1984) | parties prenantes |\n| **Mintzberg** (1989) | stratégie émergente |\n| **Hamel et Prahalad** (1990) | compétences distinctives |\n| **Schumpeter** | destruction créatrice |\n| **Musgrave** | 3 fonctions de l'État |\n| **Herzberg** | facteurs d'hygiène / moteurs |"
+  }
+ ],
+ "quiz": [
+  {
+   "type": "ordre",
+   "context": "",
+   "q": "Remets dans l'ordre les étapes de la question juridique.",
+   "items": [
+    "Qualifier juridiquement les faits",
+    "Poser le problème de droit",
+    "Énoncer la règle de droit et ses conditions",
+    "Appliquer la règle aux faits et conclure"
+   ],
+   "explain": "C'est le syllogisme : faits → problème → règle → solution."
+  },
+  {
+   "type": "vf",
+   "context": "",
+   "q": "Dans le problème de droit, on cite le nom des parties pour être précis.",
+   "answer": false,
+   "explain": "Faux : le problème de droit est une question générale, sans les noms (« Un mensonge déterminant permet-il d'annuler un contrat ? »)."
+  },
+  {
+   "type": "qcm",
+   "context": "",
+   "q": "Le chiffre d'affaires passe de 200 000 € à 250 000 €. Quel est le taux d'évolution ?",
+   "choices": [
+    "+20 %",
+    "+25 %",
+    "+50 %",
+    "+125 %"
+   ],
+   "answer": 1,
+   "explain": "(250 000 − 200 000) / 200 000 × 100 = +25 %. Le piège (+20 %) vient d'une division par la valeur d'arrivée au lieu de celle de départ."
+  },
+  {
+   "type": "qcm",
+   "context": "",
+   "q": "Un logiciel coûte 1 200 € par an en abonnement, ou 45 € par utilisation. À partir de combien d'utilisations par an l'abonnement est-il plus avantageux ?",
+   "choices": [
+    "26 utilisations",
+    "27 utilisations",
+    "25 utilisations",
+    "30 utilisations"
+   ],
+   "answer": 1,
+   "explain": "Seuil = 1 200 / 45 = 26,7. On arrondit toujours à l'entier supérieur : 27 utilisations."
+  },
+  {
+   "type": "assoc",
+   "context": "",
+   "q": "Associe chaque verbe de consigne à ce qu'on attend.",
+   "pairs": [
+    {
+     "left": "Identifier",
+     "right": "Nommer"
+    },
+    {
+     "left": "Qualifier",
+     "right": "Donner le nom juridique ou la catégorie"
+    },
+    {
+     "left": "Caractériser",
+     "right": "Décrire les traits"
+    },
+    {
+     "left": "Justifier",
+     "right": "Prouver avec le document"
+    }
+   ],
+   "explain": "Ces verbes ne demandent pas la même chose : lire la consigne évite de perdre des points."
+  },
+  {
+   "type": "qcm",
+   "context": "",
+   "q": "Le sujet de l'argumentation est : « Le numérique fait-il disparaître les intermédiaires ? ». Quel plan choisir ?",
+   "choices": [
+    "Un plan thématique",
+    "Un plan oui / mais (dialectique)",
+    "Un plan chronologique",
+    "Une liste d'arguments sans parties"
+   ],
+   "answer": 1,
+   "explain": "Une question fermée (« Est-ce… ? », « …-t-il ? ») appelle un plan dialectique : oui (désintermédiation) / mais (réintermédiation par les plateformes)."
+  },
+  {
+   "type": "multi",
+   "context": "",
+   "q": "Lesquelles sont des conditions de la concurrence pure et parfaite ?",
+   "choices": [
+    "Atomicité du marché",
+    "Homogénéité des produits",
+    "Barrières à l'entrée élevées",
+    "Transparence de l'information",
+    "Effet de réseau"
+   ],
+   "answers": [
+    0,
+    1,
+    3
+   ],
+   "explain": "Les 5 conditions : atomicité, homogénéité, libre entrée / sortie, transparence, mobilité des facteurs. Les barrières à l'entrée et l'effet de réseau s'y opposent."
+  },
+  {
+   "type": "qcm",
+   "context": "Un data center rejette de la chaleur qui sert à chauffer gratuitement une piscine municipale voisine.",
+   "q": "De quoi s'agit-il ?",
+   "choices": [
+    "Une externalité positive",
+    "Une externalité négative",
+    "Un bien collectif",
+    "Une économie d'échelle"
+   ],
+   "answer": 0,
+   "explain": "Un agent (le data center) a un effet favorable sur un autre (la piscine) sans compensation par le prix : c'est une externalité positive."
+  },
+  {
+   "type": "qcm",
+   "context": "",
+   "q": "Quel outil permet d'internaliser une externalité négative ?",
+   "choices": [
+    "Une subvention",
+    "Une taxe pollueur-payeur",
+    "Un label qualité",
+    "Une garantie constructeur"
+   ],
+   "answer": 1,
+   "explain": "On internalise une externalité négative par une taxe (pigouvienne), une norme ou un marché de quotas. La subvention sert pour les externalités positives."
+  },
+  {
+   "type": "qcm",
+   "context": "Marché des voitures d'occasion.",
+   "q": "Le vendeur connaît l'état réel de la voiture, l'acheteur non. De quoi s'agit-il ?",
+   "choices": [
+    "Une externalité",
+    "Une asymétrie d'information",
+    "Un monopole",
+    "Un aléa moral"
+   ],
+   "answer": 1,
+   "explain": "Une partie en sait plus que l'autre avant le contrat : asymétrie d'information (qui peut provoquer de l'antisélection). L'aléa moral, lui, survient après le contrat."
+  },
+  {
+   "type": "qcm",
+   "context": "",
+   "q": "Un bien non rival et non exclusif, comme l'éclairage public, est…",
+   "choices": [
+    "Un bien collectif",
+    "Un bien privé",
+    "Une externalité",
+    "Un monopole naturel"
+   ],
+   "answer": 0,
+   "explain": "Non rival (mon usage ne prive pas les autres) + non exclusif (on ne peut empêcher personne d'en profiter) = bien collectif, produit par l'État."
+  },
+  {
+   "type": "vf",
+   "context": "",
+   "q": "Envoyer ses factures en PDF par e-mail est un exemple d'automatisation.",
+   "answer": false,
+   "explain": "Faux : c'est de la dématérialisation (papier → numérique). L'automatisation suppose un traitement sans humain, avec un format structuré."
+  },
+  {
+   "type": "qcm",
+   "context": "Doctolib met en relation patients et médecins.",
+   "q": "Les patients prennent rendez-vous gratuitement, les médecins paient un abonnement. Quel est ce modèle ?",
+   "choices": [
+    "Un marché biface",
+    "Une place de marché",
+    "Un modèle freemium",
+    "Une désintermédiation"
+   ],
+   "answer": 0,
+   "explain": "La plateforme sert deux groupes d'utilisateurs ; une face paie, l'autre est gratuite : c'est un marché biface."
+  },
+  {
+   "type": "trou",
+   "context": "",
+   "q": "Une start-up non cotée valorisée à plus d'1 milliard de dollars est une ___.",
+   "answers": [
+    "licorne",
+    "une licorne"
+   ],
+   "explain": "Licorne > 1 Md$, décacorne > 10 Md$. Attention : la valorisation n'est pas le chiffre d'affaires."
+  },
+  {
+   "type": "assoc",
+   "context": "",
+   "q": "Associe chaque situation au type de chômage.",
+   "pairs": [
+    {
+     "left": "Un salarié démissionne et cherche un nouveau poste",
+     "right": "Frictionnel"
+    },
+    {
+     "left": "Une crise fait chuter les commandes",
+     "right": "Conjoncturel"
+    },
+    {
+     "left": "Les compétences ne correspondent plus aux emplois proposés",
+     "right": "Structurel"
+    }
+   ],
+   "explain": "Frictionnel = transition, conjoncturel = crise, structurel = inadéquation des compétences."
+  },
+  {
+   "type": "qcm",
+   "context": "",
+   "q": "Qui est chargé de la politique monétaire dans la zone euro ?",
+   "choices": [
+    "Le gouvernement",
+    "La BCE",
+    "L'Autorité de la concurrence",
+    "Le Parlement européen"
+   ],
+   "answer": 1,
+   "explain": "La BCE agit sur les taux directeurs avec un objectif d'inflation de 2 %. La politique budgétaire (dépenses, impôts) relève de l'État."
+  },
+  {
+   "type": "qcm",
+   "context": "Mme Durand achète une voiture d'occasion. Le vendeur lui a volontairement caché que le véhicule avait été gravement accidenté ; elle ne l'aurait jamais acheté si elle l'avait su.",
+   "q": "Sur quel fondement Mme Durand peut-elle agir ?",
+   "choices": [
+    "Le dol (art. 1137 C. civ.)",
+    "L'erreur sur la valeur",
+    "La violence (art. 1143)",
+    "L'imprévision (art. 1195)"
+   ],
+   "answer": 0,
+   "explain": "Le vendeur a volontairement gardé le silence pour la tromper, et sans cela elle n'aurait pas acheté : manœuvre + intention de tromper + caractère déterminant = dol."
+  },
+  {
+   "type": "qcm",
+   "context": "Suite du cas : le dol du vendeur est reconnu.",
+   "q": "Le dol étant établi, quelle sanction Mme Durand obtiendra-t-elle ?",
+   "choices": [
+    "La résolution du contrat",
+    "La nullité relative du contrat",
+    "Uniquement une réduction du prix",
+    "La nullité absolue du contrat"
+   ],
+   "answer": 1,
+   "explain": "Le dol vicie le consentement, une condition de formation → nullité. Elle est relative car elle protège une partie. La résolution sanctionne un problème d'exécution."
+  },
+  {
+   "type": "multi",
+   "context": "",
+   "q": "Quelles sont les 3 conditions de validité d'un contrat (art. 1128 C. civ.) ?",
+   "choices": [
+    "Le consentement des parties",
+    "La capacité de contracter",
+    "Un contenu licite et certain",
+    "Un écrit signé",
+    "La présence d'un avocat"
+   ],
+   "answers": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Art. 1128 : consentement, capacité, contenu licite et certain. L'écrit n'est pas une condition de validité (sauf exceptions)."
+  },
+  {
+   "type": "qcm",
+   "context": "Le prestataire informatique de la société Alpha ne livre jamais le logiciel commandé et payé.",
+   "q": "Alpha veut mettre fin au contrat. Quelle sanction doit-elle demander ?",
+   "choices": [
+    "La nullité",
+    "La résolution",
+    "L'imprévision",
+    "La clause attributive de compétence"
+   ],
+   "answer": 1,
+   "explain": "Le contrat était valablement formé mais n'est pas exécuté : c'est la résolution (art. 1217). La nullité sanctionne un défaut de formation."
+  },
+  {
+   "type": "qcm",
+   "context": "Le contrat prévoit : « En cas de retard, le prestataire versera 500 € par jour, quel que soit le préjudice subi. »",
+   "q": "Quelle est cette clause ?",
+   "choices": [
+    "Une clause limitative de responsabilité",
+    "Une clause pénale",
+    "Une clause résolutoire",
+    "Une clause de réserve de propriété"
+   ],
+   "answer": 1,
+   "explain": "Une indemnité forfaitaire fixée d'avance, quel que soit le préjudice réel, est une clause pénale (le juge peut la réduire si elle est excessive)."
+  },
+  {
+   "type": "vf",
+   "context": "",
+   "q": "Une clause limitative de responsabilité s'applique même si le prestataire a commis une faute lourde.",
+   "answer": false,
+   "explain": "Faux : elle est écartée en cas de faute lourde ou dolosive, ou si elle vide l'obligation essentielle de sa substance (art. 1170)."
+  },
+  {
+   "type": "multi",
+   "context": "",
+   "q": "Quelles sont les conditions de la responsabilité civile ?",
+   "choices": [
+    "Un fait générateur",
+    "Un dommage",
+    "Un lien de causalité",
+    "Un contrat écrit",
+    "Une intention de nuire"
+   ],
+   "answers": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Il faut les trois : fait générateur + dommage (certain, direct, personnel) + lien de causalité. L'intention de nuire n'est pas exigée."
+  },
+  {
+   "type": "qcm",
+   "context": "Un développeur salarié crée un logiciel de gestion dans le cadre de ses fonctions.",
+   "q": "Qui détient les droits patrimoniaux sur ce logiciel, et sur quel fondement ?",
+   "choices": [
+    "Le salarié, grâce à un brevet",
+    "L'employeur, au titre du droit d'auteur",
+    "Le salarié, au titre du droit d'auteur",
+    "L'employeur, grâce à un dépôt de marque"
+   ],
+   "answer": 1,
+   "explain": "Un logiciel est protégé par le droit d'auteur (pas par brevet). Créé par un salarié dans l'exercice de ses fonctions, ses droits patrimoniaux reviennent à l'employeur."
+  },
+  {
+   "type": "assoc",
+   "context": "",
+   "q": "Associe chaque droit de propriété intellectuelle à sa durée de protection.",
+   "pairs": [
+    {
+     "left": "Droit d'auteur",
+     "right": "70 ans après la mort de l'auteur, sans dépôt"
+    },
+    {
+     "left": "Brevet",
+     "right": "20 ans, dépôt à l'INPI"
+    },
+    {
+     "left": "Marque",
+     "right": "10 ans, renouvelable à l'infini"
+    },
+    {
+     "left": "Base de données",
+     "right": "15 ans (droit sui generis)"
+    }
+   ],
+   "explain": "Attention au piège classique : la marque est renouvelable, le brevet ne l'est pas."
+  },
+  {
+   "type": "qcm",
+   "context": "Une entreprise découvre que les données de ses clients ont été piratées.",
+   "q": "Dans quel délai doit-elle prévenir la CNIL ?",
+   "choices": [
+    "24 heures",
+    "72 heures",
+    "8 jours",
+    "1 mois"
+   ],
+   "answer": 1,
+   "explain": "Une violation de données personnelles doit être notifiée à la CNIL dans les 72 heures."
+  },
+  {
+   "type": "multi",
+   "context": "",
+   "q": "Lesquelles sont des données sensibles au sens du RGPD (art. 9) ?",
+   "choices": [
+    "L'état de santé",
+    "L'adresse IP",
+    "Les convictions religieuses",
+    "L'adresse e-mail",
+    "L'appartenance syndicale"
+   ],
+   "answers": [
+    0,
+    2,
+    4
+   ],
+   "explain": "L'IP et l'e-mail sont des données personnelles, mais pas sensibles. Les données sensibles (santé, religion, syndicat, opinions, biométrie…) sont interdites sauf exception."
+  },
+  {
+   "type": "vf",
+   "context": "",
+   "q": "Une entreprise est sanctionnée du seul fait qu'elle est en position dominante.",
+   "answer": false,
+   "explain": "Faux : la position dominante est légale. C'est son abus qui est sanctionné (art. L420-2 C. com.) : vente liée, prix prédateurs…"
+  },
+  {
+   "type": "qcm",
+   "context": "Un livreur « indépendant » travaille pour une plateforme qui fixe ses tarifs, ses horaires et peut le sanctionner.",
+   "q": "Que peut-il demander en justice ?",
+   "choices": [
+    "La requalification en contrat de travail",
+    "Le statut de SAS",
+    "L'application d'une clause pénale",
+    "Une licence d'exploitation"
+   ],
+   "answer": 0,
+   "explain": "Si la plateforme donne des ordres, contrôle et sanctionne, il existe un lien de subordination : le contrat peut être requalifié en contrat de travail (arrêt Uber, 2020)."
+  },
+  {
+   "type": "trou",
+   "context": "",
+   "q": "Un contrat de travail suppose une prestation, une rémunération et un lien de ___.",
+   "answers": [
+    "subordination"
+   ],
+   "explain": "Le lien de subordination (pouvoir de donner des ordres, de contrôler et de sanctionner) distingue le salarié de l'indépendant."
+  },
+  {
+   "type": "qcm",
+   "context": "La direction décide de s'implanter en Asie pour les 10 prochaines années.",
+   "q": "À quel niveau de décision (Ansoff) correspond ce choix ?",
+   "choices": [
+    "Opérationnel",
+    "Tactique",
+    "Stratégique",
+    "Administratif"
+   ],
+   "answer": 2,
+   "explain": "Long terme, engage toute l'entreprise, difficilement réversible et prise par la direction : décision stratégique."
+  },
+  {
+   "type": "ordre",
+   "context": "",
+   "q": "Remets dans l'ordre la démarche stratégique (modèle LCAG).",
+   "items": [
+    "Diagnostic",
+    "Choix stratégique",
+    "Mise en œuvre",
+    "Contrôle"
+   ],
+   "explain": "LCAG (1965) : diagnostic → choix → mise en œuvre → contrôle, en boucle."
+  },
+  {
+   "type": "ordre",
+   "context": "",
+   "q": "Remets dans l'ordre les étapes du modèle IMC de Simon.",
+   "items": [
+    "Intelligence : identifier le problème, collecter l'information",
+    "Modélisation : construire les solutions possibles",
+    "Choix : retenir une solution"
+   ],
+   "explain": "Avec une rationalité limitée, le décideur retient une solution satisfaisante, pas forcément optimale."
+  },
+  {
+   "type": "qcm",
+   "context": "Un nouveau concurrent arrive sur le marché avec des prix très bas.",
+   "q": "Dans quel outil d'analyse classer ce fait ?",
+   "choices": [
+    "Le PESTEL",
+    "Les 5 forces de Porter",
+    "La chaîne de valeur",
+    "La matrice BCG"
+   ],
+   "answer": 1,
+   "explain": "Un concurrent relève du secteur (micro) : menace de nouveaux entrants dans les 5 forces de Porter. Les concurrents ne vont jamais dans le PESTEL."
+  },
+  {
+   "type": "vf",
+   "context": "",
+   "q": "Une faiblesse se distingue d'une menace parce que la menace est plus grave.",
+   "answer": false,
+   "explain": "Faux : le critère est l'origine. Faiblesse = interne à l'entreprise ; menace = externe (environnement)."
+  },
+  {
+   "type": "assoc",
+   "context": "",
+   "q": "Associe chaque case de la matrice BCG à sa situation.",
+   "pairs": [
+    {
+     "left": "Vedette",
+     "right": "Marché en forte croissance, forte part de marché"
+    },
+    {
+     "left": "Vache à lait",
+     "right": "Marché en faible croissance, forte part de marché"
+    },
+    {
+     "left": "Dilemme",
+     "right": "Marché en forte croissance, faible part de marché"
+    },
+    {
+     "left": "Poids mort",
+     "right": "Marché en faible croissance, faible part de marché"
+    }
+   ],
+   "explain": "BCG = croissance du marché × part de marché relative."
+  },
+  {
+   "type": "qcm",
+   "context": "L'entreprise rachète l'un de ses concurrents.",
+   "q": "Quel est ce mode de croissance ?",
+   "choices": [
+    "Croissance interne",
+    "Croissance externe",
+    "Croissance conjointe",
+    "Croissance organique"
+   ],
+   "answer": 1,
+   "explain": "Racheter une autre entreprise (fusion, acquisition) = croissance externe : rapide mais coûteuse. L'interne (organique) est lente et contrôlée ; la conjointe passe par une alliance."
+  },
+  {
+   "type": "trou",
+   "context": "",
+   "q": "« Augmenter de 15 % le CA d'ici décembre 2027 » est un ___, car il est chiffré et daté.",
+   "answers": [
+    "objectif",
+    "un objectif"
+   ],
+   "explain": "Finalité > but > objectif. Sans chiffre ni date, ce ne serait qu'un but."
+  },
+  {
+   "type": "assoc",
+   "context": "",
+   "q": "Associe chaque auteur à son idée.",
+   "pairs": [
+    {
+     "left": "Schumpeter",
+     "right": "Destruction créatrice"
+    },
+    {
+     "left": "Freeman",
+     "right": "Parties prenantes"
+    },
+    {
+     "left": "Simon",
+     "right": "Rationalité limitée"
+    },
+    {
+     "left": "Toffler",
+     "right": "Prosommateur"
+    },
+    {
+     "left": "Herzberg",
+     "right": "Facteurs d'hygiène et facteurs moteurs"
+    }
+   ],
+   "explain": "Citer le bon auteur montre au correcteur que la notion est maîtrisée."
+  },
+  {
+   "type": "qcm",
+   "context": "Une entreprise française vend son logiciel de paie, inchangé, en Belgique et en Suisse.",
+   "q": "Quelle stratégie (matrice d'Ansoff) l'entreprise suit-elle ?",
+   "choices": [
+    "Pénétration de marché",
+    "Développement de produits",
+    "Développement de marchés",
+    "Diversification"
+   ],
+   "answer": 2,
+   "explain": "Même produit, nouveau marché (géographique ou de clientèle) = développement de marchés."
+  }
+ ]
+}

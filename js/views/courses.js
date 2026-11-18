@@ -1,296 +1,225 @@
-// Onglet « Cours » : la liste des cours (vignettes A4), la recherche, et l'ajout d'un cours.
-import { state, save, uid, getSubject, SUBJECT_COLORS } from '../store.js';
-import { esc, icon, relTime, formModal, confirmBox, openModal, toast, $, $$ } from '../ui.js';
-import { stripMd } from '../md.js';
-import { INSTRUCTIONS, MAX_CARDS, generateFromFiles, importCourseMarkdown } from '../ai.js';
-import { PACKS, importPack, packInstalled } from '../packs.js';
-import { courseCards, courseDue, createCourse } from '../library.js';
-import { coursePageHtml, mountA4 } from '../a4.js';
+// Onglet « Cours » : le cours complet, tel quel (pas de synthèse ici).
+import { state, save, uid, getCourse, cardsOf, questionsOf, subjects, subjectColor, deleteCourse } from '../store.js';
+import { files } from '../db.js';
+import { esc, icon, relTime, confirmBox, openModal, toast, download, debounce, $, $$ } from '../ui.js';
+import { md, stripMd, outline } from '../md.js';
+import { addCourseModal, studyModal } from './create.js';
 
-const subjectOptions = (withNone = true) => [
-  ...(withNone ? [{ value: '', label: 'Sans matière' }] : []),
-  ...state.subjects.map((s) => ({ value: s.id, label: s.name })),
-];
+const readingTime = (c) => Math.max(1, Math.round(stripMd(c.content).split(' ').length / 200));
+const notFound = (el) => (el.innerHTML = `<div class="empty"><h3>Cours introuvable</h3><a class="btn" href="#/cours">Mes cours</a></div>`);
 
-/* ---------- Ajouter un cours : 4 façons, présentées simplement ---------- */
-export function addCourseModal(subjectId = '') {
-  const packs = PACKS.filter((p) => !packInstalled(p.id));
-  openModal(
-    `<h3>Ajouter un cours</h3>
-     <div class="choice-list">
-       <button class="choice" data-c="photos"><span>📸</span><div><b>Depuis mes photos</b><small>Prends ton cours en photo (ou un PDF) : Claude crée la fiche et les flashcards</small></div></button>
-       <button class="choice" data-c="paste"><span>📋</span><div><b>Coller une réponse de Claude</b><small>Tu as fait la fiche dans l'appli Claude ? Colle-la ici</small></div></button>
-       <button class="choice" data-c="write"><span>✍️</span><div><b>Écrire moi-même</b><small>Une fiche vide à remplir</small></div></button>
-       ${packs.map((p) => `<button class="choice" data-pack="${p.id}"><span>📦</span><div><b>${esc(p.title)}</b><small>Cours prêt à l'emploi : ${esc(p.desc)}</small></div></button>`).join('')}
-     </div>
-     <div class="modal-actions"><button class="btn ghost" data-close>Annuler</button></div>`,
-    {
-      onMount: (m, close) => {
-        m.addEventListener('click', async (e) => {
-          const c = e.target.closest('[data-c]')?.dataset.c;
-          const pk = e.target.closest('[data-pack]')?.dataset.pack;
-          if (!c && !pk) return;
-          close();
-          if (c === 'photos') photosModal(subjectId, 'auto');
-          if (c === 'paste') photosModal(subjectId, 'manual');
-          if (c === 'write') {
-            const v = await formModal(
-              'Nouveau cours',
-              [
-                { name: 'title', label: 'Titre', placeholder: 'Ex : SQL — les jointures', required: true },
-                { name: 'subjectId', label: 'Matière', type: 'select', value: subjectId, options: subjectOptions() },
-              ],
-              'Créer',
-            );
-            if (v?.title) location.hash = `#/cours/${createCourse({ title: v.title, subjectId: v.subjectId }).id}/modifier`;
-          }
-          if (pk) {
-            try {
-              const r = await importPack(pk);
-              toast('Cours ajouté ✨', 'success');
-              location.hash = `#/cours/${r.courseId}`;
-            } catch {
-              toast('Impossible de charger ce cours (hors ligne ?)', 'error');
-            }
-          }
-        });
-      },
-    },
-  );
-}
-
-export function manageSubjects(onDone) {
-  const render = () =>
-    `<h3>Matières</h3>
-     <ul class="subject-admin">${
-       state.subjects
-         .map(
-           (s) => `<li><span class="dot lg" style="background:${s.color}"></span><b>${esc(s.name)}</b>
-             <small>${state.courses.filter((c) => c.subjectId === s.id).length} cours</small>
-             <button class="icon-btn" data-edit="${s.id}" title="Modifier">${icon('edit', 16)}</button>
-             <button class="icon-btn" data-del="${s.id}" title="Supprimer">${icon('trash', 16)}</button></li>`,
-         )
-         .join('') || '<li class="muted">Aucune matière</li>'
-     }</ul>
-     <div class="modal-actions"><button class="btn ghost" data-close>Fermer</button><button class="btn primary" data-add>${icon('plus')} Nouvelle matière</button></div>`;
-  openModal(render(), {
-    onClose: onDone,
-    onMount: (m, close) => {
-      m.onclick = async (e) => {
-        const t = e.target.closest('button');
-        if (!t || t.hasAttribute('data-close')) return;
-        if (t.dataset.add !== undefined || t.dataset.edit) {
-          const s = t.dataset.edit ? getSubject(t.dataset.edit) : null;
-          const v = await formModal(s ? 'Modifier la matière' : 'Nouvelle matière', [
-            { name: 'name', label: 'Nom', value: s?.name, required: true, placeholder: 'Ex : Maths' },
-            { name: 'color', label: 'Couleur', type: 'color', value: s?.color || SUBJECT_COLORS[state.subjects.length % SUBJECT_COLORS.length], options: SUBJECT_COLORS },
-          ]);
-          if (v?.name) {
-            if (s) Object.assign(s, { name: v.name.trim(), color: v.color || s.color });
-            else state.subjects.push({ id: uid(), name: v.name.trim(), color: v.color || SUBJECT_COLORS[0], createdAt: Date.now() });
-            save();
-          }
-        } else if (t.dataset.del) {
-          if (await confirmBox('Supprimer cette matière ?', { danger: true, ok: 'Supprimer', detail: 'Les cours sont conservés (sans matière).' })) {
-            state.subjects = state.subjects.filter((s) => s.id !== t.dataset.del);
-            state.courses.forEach((c) => c.subjectId === t.dataset.del && (c.subjectId = null));
-            state.decks.forEach((d) => d.subjectId === t.dataset.del && (d.subjectId = null));
-            save();
-          }
-        } else return;
-        m.innerHTML = render();
-        $$('[data-close]', m).forEach((b) => (b.onclick = close));
-      };
-    },
-  });
-}
-
-/* ---------- Création depuis des photos (ou en collant la réponse de Claude) ---------- */
-export function photosModal(subjectId = '', tab = 'auto') {
-  const hasKey = !!state.settings.apiKey?.trim();
-  const subjOpts = `<option value="">Sans matière</option>${state.subjects.map((s) => `<option value="${s.id}" ${s.id === subjectId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}`;
-  openModal(
-    `<h3>${tab === 'auto' ? '📸 Cours depuis mes photos' : '📋 Coller une réponse de Claude'}</h3>
-     <div class="seg" data-tabs><button class="${tab === 'auto' ? 'on' : ''}" data-tab="auto">⚡ Tout dans l'appli</button><button class="${tab === 'manual' ? 'on' : ''}" data-tab="manual">💬 Via l'appli Claude</button></div>
-
-     <div data-pane="auto" ${tab === 'auto' ? '' : 'hidden'}>
-       ${
-         hasKey
-           ? `<label class="drop"><input type="file" accept="image/*,application/pdf" multiple data-files><span>📷 Prendre ou choisir des photos (ou un PDF)</span></label>
-              <p class="muted small" data-count>Aucun fichier</p>
-              <label class="field"><span>Matière</span><select data-subject>${subjOpts}</select></label>
-              <label class="field"><span>Précision (optionnel)</span><input data-hint placeholder="Ex : chapitre 4, les jointures SQL"></label>
-              <p class="gen-status" data-status hidden></p>
-              <div class="modal-actions"><button class="btn ghost" data-close>Annuler</button><button class="btn primary" data-gen disabled>Créer le cours</button></div>`
-           : `<div class="key-setup">
-                <p><b>Une seule fois :</b> colle ta clé API Claude. Ensuite tu prends tes photos et l'appli crée tout, sans quitter ClaudeNote.</p>
-                <ol class="steps small">
-                  <li>Ouvre <a href="https://platform.claude.com/" target="_blank" rel="noopener">platform.claude.com</a> et connecte-toi</li>
-                  <li>Ajoute un peu de crédit (Billing) : compte environ 10 à 15 centimes par cours</li>
-                  <li>API Keys → <b>Create Key</b> → copie la clé (sk-ant-…)</li>
-                </ol>
-                <label class="field"><span>Ta clé API</span><input type="password" data-newkey autocomplete="off" placeholder="sk-ant-…"></label>
-                <div class="modal-actions"><button class="btn primary" data-savekey>Enregistrer et continuer</button></div>
-                <p class="muted small">Compte différent de ton abonnement Claude, payé à l'usage. La clé reste uniquement sur ce téléphone.</p>
-              </div>`
-       }
-     </div>
-
-     <div data-pane="manual" ${tab === 'manual' ? '' : 'hidden'}>
-       <ol class="steps">
-         <li><button class="btn sm primary" data-copy>Copier les instructions</button></li>
-         <li>Ouvre <a href="https://claude.ai/new" target="_blank" rel="noopener">Claude</a>, colle les instructions et ajoute tes photos</li>
-         <li>Copie la réponse de Claude et colle-la ici :</li>
-       </ol>
-       <textarea rows="7" data-paste placeholder="# Titre du cours&#10;&#10;::: Grand thème&#10;### Sous-partie&#10;- **Notion** : explication&#10;:::"></textarea>
-       <label class="field"><span>Matière</span><select data-subject2>${subjOpts}</select></label>
-       <div class="modal-actions"><button class="btn ghost" data-close>Annuler</button><button class="btn primary" data-import>Créer le cours</button></div>
-     </div>
-     <p class="muted small">Le cours fera ${MAX_CARDS} parties au maximum : chacune devient une flashcard.</p>`,
-    {
-      wide: true,
-      onMount: (m, close) => {
-        let picked = [];
-        const finish = (r) => {
-          close();
-          toast(`Cours créé : ${r.cards} flashcard${r.cards > 1 ? 's' : ''} ✨`, 'success');
-          location.hash = `#/cours/${r.course.id}`;
-        };
-        m.addEventListener('click', async (e) => {
-          if (e.target.closest('[data-savekey]')) {
-            const k = $('[data-newkey]', m).value.trim();
-            if (!/^sk-ant-/.test(k)) return toast('La clé doit commencer par sk-ant-', 'error');
-            state.settings.apiKey = k;
-            save();
-            close();
-            toast('Clé enregistrée ✅', 'success');
-            photosModal(subjectId, 'auto');
-            return;
-          }
-          const t = e.target.closest('[data-tab]');
-          if (t) {
-            $$('[data-tab]', m).forEach((b) => b.classList.toggle('on', b === t));
-            $$('[data-pane]', m).forEach((p) => (p.hidden = p.dataset.pane !== t.dataset.tab));
-            return;
-          }
-          if (e.target.closest('[data-copy]')) {
-            try {
-              await navigator.clipboard.writeText(INSTRUCTIONS);
-              toast('Instructions copiées 📋', 'success');
-            } catch {
-              toast('Copie impossible : réessaie', 'error');
-            }
-            return;
-          }
-          if (e.target.closest('[data-import]')) {
-            const txt = $('[data-paste]', m).value.trim();
-            if (!/:::\s+\S/.test(txt)) return toast("Je ne trouve pas de bloc « ::: » : colle toute la réponse de Claude", 'error');
-            finish(importCourseMarkdown(txt, $('[data-subject2]', m).value));
-            return;
-          }
-          const gen = e.target.closest('[data-gen]');
-          if (gen && picked.length) {
-            const status = $('[data-status]', m);
-            gen.disabled = true;
-            status.hidden = false;
-            status.textContent = '⏳ Envoi des documents à Claude…';
-            try {
-              const text = await generateFromFiles(picked, {
-                hint: $('[data-hint]', m).value.trim(),
-                onProgress: (n) => (status.textContent = `✍️ Claude rédige ta fiche… ${n} caractères`),
-              });
-              finish(importCourseMarkdown(text, $('[data-subject]', m).value));
-            } catch (err) {
-              status.textContent = `❌ ${err.message}`;
-              gen.disabled = false;
-            }
-          }
-        });
-        m.addEventListener('change', (e) => {
-          if (!e.target.matches('[data-files]')) return;
-          picked = [...e.target.files];
-          $('[data-count]', m).textContent = picked.length ? `${picked.length} fichier${picked.length > 1 ? 's' : ''} : ${picked.map((f) => f.name).join(', ')}` : 'Aucun fichier';
-          $('[data-gen]', m).disabled = !picked.length;
-        });
-      },
-    },
-  );
-}
-
-/* ---------- Liste des cours ---------- */
-export default function coursesView(el, { query }) {
-  let filter = query.get('s') || '';
+/* ---------- Liste ---------- */
+export function coursesList(el, { query }) {
   let q = '';
-  let mounted = [];
-
-  function listHtml() {
-    const list = state.courses
-      .filter((c) => !filter || (filter === 'none' ? !c.subjectId : c.subjectId === filter))
-      .filter((c) => !q || `${c.title} ${stripMd(c.content || '')}`.toLowerCase().includes(q))
-      .sort((a, b) => b.updatedAt - a.updatedAt);
-    if (!list.length)
-      return `<div class="empty">${icon('book', 40)}<h3>${q ? 'Aucun cours trouvé' : 'Aucun cours ici'}</h3>${q ? '' : `<button class="btn primary" data-act="add">${icon('plus')} Ajouter un cours</button>`}</div>`;
-    return `<div class="course-tiles">${list
-      .map((c) => {
-        const sub = getSubject(c.subjectId);
-        const n = courseCards(c).length;
-        const d = courseDue(c);
-        return `<a class="tile" href="#/cours/${c.id}" style="--c:${sub?.color || '#94a3b8'}">
-          <div class="tile-thumb" data-thumb="${c.id}"></div>
-          <div class="tile-info"><span class="tag">${esc(sub?.name || 'Sans matière')}</span>
-            <b>${esc(c.title)}</b>
-            <small>${n ? `${n} flashcard${n > 1 ? 's' : ''}` : 'Pas de flashcard'}${d ? ` · <span class="due-txt">${d} à réviser</span>` : ''}</small></div></a>`;
-      })
-      .join('')}</div>`;
-  }
-
-  function mountThumbs() {
-    mounted.forEach((m) => m.destroy());
-    mounted = $$('[data-thumb]', el).map((stage) => {
-      const c = state.courses.find((x) => x.id === stage.dataset.thumb);
-      return mountA4(stage, coursePageHtml(c), { mode: 'width' });
-    });
-  }
-  const redrawList = () => {
-    $('[data-list]', el).innerHTML = listHtml();
-    mountThumbs();
-  };
-
-  function draw() {
-    const count = (id) => state.courses.filter((c) => c.subjectId === id).length;
-    el.innerHTML = `
-      <div class="page-head"><h1>Mes cours</h1><button class="btn primary" data-act="add">${icon('plus')} Ajouter un cours</button></div>
-      <label class="search-in big">${icon('search', 18)}<input type="search" placeholder="Rechercher un cours, une notion…" data-q value="${esc(q)}"></label>
-      <div class="chips scroll">
-        <button class="chip ${!filter ? 'on' : ''}" data-f="">Tous <small>${state.courses.length}</small></button>
-        ${state.subjects.map((s) => `<button class="chip ${filter === s.id ? 'on' : ''}" data-f="${s.id}"><span class="dot" style="background:${s.color}"></span>${esc(s.name)} <small>${count(s.id)}</small></button>`).join('')}
-        <button class="chip ghost" data-act="subjects">⚙︎ Matières</button>
-      </div>
-      <div data-list>${listHtml()}</div>`;
-    mountThumbs();
-  }
-  draw();
   if (query.get('ajouter') === '1') {
     history.replaceState(null, '', '#/cours');
-    addCourseModal(filter);
+    setTimeout(addCourseModal, 50);
+  }
+  const listHtml = () => {
+    const list = state.courses
+      .filter((c) => !q || `${c.title} ${c.subject} ${c.content}`.toLowerCase().includes(q))
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+    if (!state.courses.length)
+      return `<div class="empty">${icon('book', 44)}<h3>Aucun cours pour l'instant</h3><p>Prends ton cours en photo : Claude le recopie et prépare tes flashcards et ton quiz.</p><button class="btn primary" data-act="add">${icon('plus')} Ajouter un cours</button></div>`;
+    if (!list.length) return `<p class="empty-txt">Aucun cours ne contient « ${esc(q)} ».</p>`;
+    const groups = new Map();
+    list.forEach((c) => groups.set(c.subject || 'Sans matière', [...(groups.get(c.subject || 'Sans matière') || []), c]));
+    return [...groups]
+      .map(
+        ([sub, cs]) => `<section class="group"><h2 class="group-title"><span class="dot" style="background:${subjectColor(sub === 'Sans matière' ? '' : sub)}"></span>${esc(sub)}</h2>
+        ${cs
+          .map(
+            (c) => `<a class="row-card" href="#/cours/${c.id}" style="--c:${subjectColor(c.subject)}">
+              <div class="rc-main"><b>${esc(c.title)}</b><small>${readingTime(c)} min de lecture · modifié ${relTime(c.updatedAt)}</small></div>
+              <div class="rc-tags">${cardsOf(c.id).length ? `<span class="pill">🃏 ${cardsOf(c.id).length}</span>` : ''}${questionsOf(c.id).length ? `<span class="pill">❓ ${questionsOf(c.id).length}</span>` : ''}</div>
+              ${icon('back', 18).replace('<svg', '<svg class="chev"')}</a>`,
+          )
+          .join('')}</section>`,
+      )
+      .join('');
+  };
+  el.innerHTML = `
+    <header class="page-head"><h1>Cours</h1><button class="btn primary" data-act="add">${icon('plus')} Ajouter</button></header>
+    ${state.courses.length ? `<label class="search">${icon('search', 18)}<input type="search" placeholder="Chercher dans mes cours…" data-q></label>` : ''}
+    <div data-list>${listHtml()}</div>`;
+  el.onclick = (e) => e.target.closest('[data-act="add"]') && addCourseModal();
+  el.oninput = (e) => {
+    if (!e.target.matches('[data-q]')) return;
+    q = e.target.value.trim().toLowerCase();
+    $('[data-list]', el).innerHTML = listHtml();
+  };
+}
+
+/* ---------- Lecture du cours complet ---------- */
+export function courseView(el, { params: [id] }) {
+  const course = getCourse(id);
+  if (!course) return notFound(el);
+  course.attachments ||= [];
+  const urls = [];
+
+  async function draw() {
+    const nCards = cardsOf(id).length;
+    const nQ = questionsOf(id).length;
+    const toc = outline(course.content);
+    el.innerHTML = `
+      <div class="topline"><a href="#/cours" class="back">${icon('back', 18)} Cours</a><button class="icon-btn" data-act="menu" aria-label="Options">⋯</button></div>
+      <h1 class="doc-title">${esc(course.title)}</h1>
+      <p class="doc-meta"><span class="tag" style="--c:${subjectColor(course.subject)}">${esc(course.subject || 'Sans matière')}</span> ${readingTime(course)} min de lecture</p>
+      ${
+        nCards || nQ
+          ? `<div class="study-links">
+               <a class="study-link" href="#/flashcards/${id}"><span>🃏</span><b>${nCards} flashcards</b></a>
+               <a class="study-link" href="#/quiz/${id}"><span>❓</span><b>${nQ} questions</b></a></div>`
+          : `<button class="cta" data-act="study"><span>✨</span><div><b>Créer les flashcards et le quiz</b><small>Claude synthétise ce cours pour toi</small></div></button>`
+      }
+      ${
+        toc.length > 2
+          ? `<details class="toc"><summary>Sommaire (${toc.filter((t) => t.level === 2).length} parties)</summary><ol>${toc
+              .map((t) => `<li class="l${t.level}"><a href="#${t.id}" data-anchor="${t.id}">${esc(t.text)}</a></li>`)
+              .join('')}</ol></details>`
+          : ''
+      }
+      <article class="prose">${course.content.trim() ? md(course.content) : `<p class="muted">Ce cours est vide. <a href="#/cours/${id}/modifier">Écris-le ou colle-le ici</a>.</p>`}</article>
+      ${course.attachments.length ? `<section class="originals"><h2>📎 Documents d'origine</h2><div class="thumbs" data-thumbs></div></section>` : ''}
+      <a class="btn block edit-btn" href="#/cours/${id}/modifier">${icon('edit', 16)} Modifier le cours</a>
+      <input type="file" multiple hidden accept="image/*,application/pdf" data-file>`;
+    // vignettes des photos / PDF d'origine
+    const box = $('[data-thumbs]', el);
+    if (box)
+      for (const a of course.attachments) {
+        const blob = await files.get(a.id).catch(() => null);
+        if (!blob) continue;
+        const url = URL.createObjectURL(blob);
+        urls.push(url);
+        box.insertAdjacentHTML(
+          'beforeend',
+          a.type?.startsWith('image/')
+            ? `<a href="${url}" target="_blank" rel="noopener" class="thumb"><img src="${url}" alt="${esc(a.name)}"></a>`
+            : `<a href="${url}" target="_blank" rel="noopener" class="thumb file">📄<small>${esc(a.name)}</small></a>`,
+        );
+      }
+  }
+  draw();
+
+  function menu() {
+    const n = cardsOf(id).length + questionsOf(id).length;
+    openModal(
+      `<h3>${esc(course.title)}</h3>
+       <div class="choice-list">
+         <a class="choice" href="#/cours/${id}/modifier" data-close><span>✏️</span><div><b>Modifier le cours</b></div></a>
+         <button class="choice" data-m="study"><span>✨</span><div><b>${n ? 'Refaire' : 'Créer'} les flashcards et le quiz</b><small>${n ? 'Remplace les actuels' : 'Avec Claude'}</small></div></button>
+         <button class="choice" data-m="attach"><span>📎</span><div><b>Joindre des photos ou un PDF</b></div></button>
+         <button class="choice" data-m="export"><span>⬇️</span><div><b>Télécharger le texte</b><small>Fichier .md</small></div></button>
+         <button class="choice danger" data-m="delete"><span>🗑️</span><div><b>Supprimer le cours</b><small>Avec ses flashcards et son quiz</small></div></button>
+       </div><button class="btn ghost block" data-close>Fermer</button>`,
+      {
+        onMount: (m, close) =>
+          m.addEventListener('click', async (e) => {
+            const a = e.target.closest('[data-m]')?.dataset.m;
+            if (!a) return;
+            close();
+            if (a === 'study') studyModal(id);
+            if (a === 'attach') $('[data-file]', el).click();
+            if (a === 'export') download(`${course.title.replace(/[^\w\-éèàùç ]+/gi, '_')}.md`, `# ${course.title}\n\n${course.content}`, 'text/markdown');
+            if (a === 'delete' && (await confirmBox(`Supprimer « ${course.title} » ?`, { danger: true, ok: 'Supprimer', detail: 'Ses flashcards et son quiz seront supprimés aussi.' }))) {
+              for (const at of course.attachments) await files.del(at.id).catch(() => {});
+              deleteCourse(id);
+              location.hash = '#/cours';
+            }
+          }),
+      },
+    );
   }
 
   el.onclick = (e) => {
-    const f = e.target.closest('[data-f]');
-    if (f) {
-      filter = f.dataset.f;
-      draw();
+    const anchor = e.target.closest('[data-anchor]');
+    if (anchor) {
+      e.preventDefault();
+      document.getElementById(anchor.dataset.anchor)?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
     const a = e.target.closest('[data-act]')?.dataset.act;
-    if (a === 'add') addCourseModal(filter && filter !== 'none' ? filter : '');
-    if (a === 'subjects') manageSubjects(draw);
+    if (a === 'menu') menu();
+    if (a === 'study') studyModal(id);
   };
-  el.oninput = (e) => {
-    if (e.target.matches('[data-q]')) {
-      q = e.target.value.trim().toLowerCase();
-      redrawList();
+  el.onchange = async (e) => {
+    if (!e.target.matches('[data-file]')) return;
+    for (const f of e.target.files) {
+      const fid = uid();
+      await files.set(fid, f).then(() => course.attachments.push({ id: fid, name: f.name, type: f.type, size: f.size })).catch(() => toast(`Impossible d'enregistrer ${f.name}`, 'error'));
     }
+    save();
+    draw();
   };
-  return () => mounted.forEach((m) => m.destroy());
+  return () => urls.forEach((u) => URL.revokeObjectURL(u));
+}
+
+/* ---------- Écrire / modifier ---------- */
+const SNIPPETS = {
+  h2: ['\n## ', 'Grande partie', '\n'],
+  h3: ['\n### ', 'Sous-partie', '\n'],
+  bold: ['**', 'mot important', '**'],
+  mark: ['==', "l'essentiel", '=='],
+  list: ['\n- ', 'élément', '\n'],
+  table: ['\n| Colonne 1 | Colonne 2 |\n|---|---|\n| ', 'case', ' | case |\n'],
+  flux: ['\n```flux\n', 'Étape 1 -> Étape 2 -> Étape 3', '\n```\n'],
+  warn: ['\n> ⚠️ **Piège :** ', 'à ne pas confondre…', '\n'],
+};
+
+export function courseEdit(el, { params: [id] }) {
+  const course = getCourse(id);
+  if (!course) return notFound(el);
+  el.innerHTML = `
+    <div class="topline"><a href="#/cours/${id}" class="back">${icon('back', 18)} Retour</a><a class="btn primary sm" href="#/cours/${id}">✓ Terminé</a></div>
+    <input class="title-input" data-title value="${esc(course.title)}" placeholder="Titre du cours">
+    <label class="field"><span>Matière</span><input data-subject list="subj-dl" value="${esc(course.subject)}" placeholder="Ex : CEJM, Maths…" autocomplete="off">
+      <datalist id="subj-dl">${subjects().map((s) => `<option value="${esc(s)}">`).join('')}</datalist></label>
+    <div class="seg full"><button class="on" data-view="edit">✏️ Écrire</button><button data-view="preview">👁️ Aperçu</button></div>
+    <div data-pane="edit">
+      <div class="insert-bar">${[['h2', 'Titre'], ['h3', 'Sous-titre'], ['bold', 'Gras'], ['mark', 'Surligner'], ['list', 'Liste'], ['table', 'Tableau'], ['flux', 'Schéma'], ['warn', 'Piège']]
+        .map(([k, l]) => `<button data-ins="${k}">${l}</button>`)
+        .join('')}</div>
+      <textarea class="editor" data-editor placeholder="Écris ou colle ton cours ici…">${esc(course.content)}</textarea>
+    </div>
+    <article class="prose" data-pane="preview" hidden></article>
+    <p class="save-line" data-status>Enregistré automatiquement</p>`;
+  const editor = $('[data-editor]', el);
+  const status = $('[data-status]', el);
+  const persist = debounce(() => {
+    course.content = editor.value;
+    course.updatedAt = Date.now();
+    save();
+    status.textContent = '✓ Enregistré';
+  }, 400);
+  editor.addEventListener('input', () => ((status.textContent = 'Enregistrement…'), persist()));
+  el.oninput = (e) => {
+    if (e.target.matches('[data-title]')) course.title = e.target.value || 'Sans titre';
+    else if (e.target.matches('[data-subject]')) course.subject = e.target.value.trim();
+    else return;
+    course.updatedAt = Date.now();
+    save();
+  };
+  el.onclick = (e) => {
+    const v = e.target.closest('[data-view]');
+    if (v) {
+      $$('[data-view]', el).forEach((b) => b.classList.toggle('on', b === v));
+      $$('[data-pane]', el).forEach((p) => (p.hidden = p.dataset.pane !== v.dataset.view));
+      if (v.dataset.view === 'preview') $('[data-pane="preview"]', el).innerHTML = md(editor.value);
+      return;
+    }
+    const k = e.target.closest('[data-ins]')?.dataset.ins;
+    if (!k) return;
+    const [a, ph, b] = SNIPPETS[k];
+    const { selectionStart: s, selectionEnd: t } = editor;
+    const sel = editor.value.slice(s, t) || ph;
+    editor.setRangeText(a + sel + b, s, t, 'end');
+    editor.setSelectionRange(s + a.length, s + a.length + sel.length);
+    editor.focus();
+    persist();
+  };
+  if (!course.content) editor.focus();
+  return () => {
+    course.content = editor.value;
+    save();
+  };
 }

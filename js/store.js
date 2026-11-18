@@ -1,5 +1,13 @@
+// État de l'application, sauvegardé dans IndexedDB.
+// Modèle :
+//   courses   : le cours complet (texte intégral, non synthétisé) + fichiers d'origine
+//   cards     : flashcards synthétiques d'un cours (répétition espacée)
+//   questions : questions de quiz d'un cours (QCM, vrai/faux, cas, association, ordre, texte à trous)
 import { kv } from './db.js';
+import { DEFAULT_SOURCES, DEFAULT_KEYWORDS } from './sources.js';
 
+export { DEFAULT_SOURCES } from './sources.js';
+export const STATE_VERSION = 3;
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 export const DAY = 864e5;
 
@@ -13,31 +21,20 @@ export function startOfDay(ts = Date.now()) {
   return d.getTime();
 }
 
-export { DEFAULT_SOURCES } from './sources.js';
-import { DEFAULT_SOURCES, DEFAULT_KEYWORDS } from './sources.js';
-
-export const STATE_VERSION = 2;
-
-export const DEFAULT_PROXIES = [
-  'proxy?url=', // fourni par server.js (le plus fiable)
-  'https://api.allorigins.win/raw?url=',
-  'https://api.codetabs.com/v1/proxy?quest=',
-];
+export const DEFAULT_PROXIES = ['proxy?url=', 'https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
 
 function defaults() {
   return {
     version: STATE_VERSION,
-    packVersions: {},
-    subjects: [],
     courses: [],
-    decks: [],
     cards: [],
+    questions: [],
+    qstats: {}, // id de question -> { seen, wrong, last }
+    quizLog: [], // { date, courseId, score, total }
     exams: [],
-    quizLog: [],
-    quizMistakes: [],
-    push: { vapidPublic: '', vapidPrivate: '', subscription: null, remindHour: 18 },
     reviewLog: {},
-    pomodoroLog: {},
+    packVersions: {},
+    push: { vapidPublic: '', vapidPrivate: '', subscription: null, remindHour: 18 },
     news: {
       items: [],
       lastFetch: 0,
@@ -49,7 +46,7 @@ function defaults() {
       proxies: [...DEFAULT_PROXIES],
       errors: {},
     },
-    settings: { theme: 'auto', pomodoro: { work: 25, short: 5, long: 15, every: 4 }, dailyGoal: 30, apiKey: '' },
+    settings: { theme: 'auto', dailyGoal: 20, apiKey: '' },
   };
 }
 
@@ -63,6 +60,44 @@ function mergeDefaults(target, def) {
   return target;
 }
 
+/** Ancien format de cours (blocs « ::: ») → texte de cours normal */
+function legacyToMarkdown(content = '') {
+  return content
+    .replace(/^\s*#\s+.+\n?/, '') // le titre est déjà affiché au-dessus du cours
+    .replace(/^:::\s+(.+)$/gm, '## $1')
+    .replace(/^:::\s*$/gm, '')
+    .replace(/^\s*!!\s*(.+)$/gm, '> ⚠️ **Piège :** $1')
+    .replace(/^(.+?)\s*::\s*(.+)$/gm, '- **$1** : $2')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/** Les versions 1 et 2 de l'appli : on garde les cours (texte), les examens, la veille et les réglages. */
+function migrate(old) {
+  if ((old.version || 1) >= 3) return old;
+  const fresh = defaults();
+  const subjectName = (id) => (old.subjects || []).find((s) => s.id === id)?.name || '';
+  fresh.courses = (old.courses || [])
+    .filter((c) => !c.packId) // les cours prêts à l'emploi sont réinstallés dans leur nouvelle version
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      subject: subjectName(c.subjectId),
+      content: legacyToMarkdown(c.content),
+      attachments: c.attachments || [],
+      createdAt: c.createdAt || Date.now(),
+      updatedAt: c.updatedAt || Date.now(),
+    }));
+  fresh.exams = (old.exams || []).map((e) => ({ id: e.id, title: e.title, date: e.date, subject: subjectName(e.subjectId) }));
+  fresh.reviewLog = old.reviewLog || {};
+  if (old.news) fresh.news = mergeDefaults(old.news, defaults().news);
+  if (old.push) fresh.push = { ...fresh.push, ...old.push };
+  fresh.settings.theme = old.settings?.theme || 'auto';
+  fresh.settings.apiKey = old.settings?.apiKey || '';
+  fresh.migratedFrom = old.version || 1;
+  return fresh;
+}
+
 export async function load() {
   let saved = null;
   try {
@@ -71,49 +106,23 @@ export async function load() {
     console.warn('IndexedDB indisponible', e);
   }
   if (saved) {
-    Object.assign(state, mergeDefaults(saved, defaults()));
-    migrate();
+    Object.assign(state, mergeDefaults(migrate(saved), defaults()));
+    await flush();
     return false;
   }
   await flush();
   return true; // premier lancement
 }
 
-/** Mises à niveau des données d'une version à l'autre */
-function migrate() {
-  const v = state.version || 1;
-  if (v < 2) {
-    // v2 : veille recentrée sur sécurité + IA (nouvelles sources, cache vidé)
-    const n = state.news;
-    const custom = (n.sources || []).filter((s) => s.custom);
-    n.sources = [...DEFAULT_SOURCES.map((s) => ({ ...s })), ...custom];
-    n.items = n.items.filter((i) => i.saved);
-    n.lastFetch = 0;
-    n.errors = {};
-    const oldDefault = ['faille', 'CVE', 'IA', 'Linux', 'Python'];
-    if (n.keywords.length === oldDefault.length && n.keywords.every((k, i) => k === oldDefault[i])) n.keywords = [...DEFAULT_KEYWORDS];
-    // le paquet CEJM installé avant la v2 sera remplacé par la version synthétique
-    if (state.courses.some((c) => c.packId === 'cejm')) state.packVersions.cejm = 1;
-  }
-  state.version = STATE_VERSION;
-}
-
 export function replaceState(newState) {
   for (const k of Object.keys(state)) delete state[k];
-  Object.assign(state, mergeDefaults(newState, defaults()));
-  migrate();
+  Object.assign(state, mergeDefaults(migrate(newState), defaults()));
 }
-
-export function resetState() {
-  replaceState(defaults());
-}
+export const resetState = () => replaceState(defaults());
 
 let saveTimer = null;
 const listeners = new Set();
-export function onChange(fn) {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
-}
+export const onChange = (fn) => (listeners.add(fn), () => listeners.delete(fn));
 export function save() {
   listeners.forEach((fn) => fn());
   clearTimeout(saveTimer);
@@ -130,28 +139,56 @@ export async function flush() {
 window.addEventListener('beforeunload', () => flush());
 document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush());
 
-/* ---------- Helpers métier ---------- */
-export const getSubject = (id) => state.subjects.find((s) => s.id === id);
+/* ---------- Accès pratiques ---------- */
 export const getCourse = (id) => state.courses.find((c) => c.id === id);
-export const getDeck = (id) => state.decks.find((d) => d.id === id);
-export const cardsOf = (deckId) => state.cards.filter((c) => c.deckId === deckId);
+export const cardsOf = (courseId) => state.cards.filter((c) => c.courseId === courseId);
+export const questionsOf = (courseId) => state.questions.filter((q) => q.courseId === courseId);
 export const isDue = (c, now = Date.now()) => c.due <= now;
-export const deckForCourse = (courseId) => state.decks.find((d) => d.courseId === courseId);
+export const dueCards = (courseId, now = Date.now()) => state.cards.filter((c) => (!courseId || c.courseId === courseId) && isDue(c, now));
+export const subjects = () => [...new Set(state.courses.map((c) => c.subject).filter(Boolean))].sort();
 
-export function ensureDeckForCourse(course) {
-  let deck = deckForCourse(course.id);
-  if (!deck) {
-    deck = { id: uid(), name: course.title, subjectId: course.subjectId || null, courseId: course.id, createdAt: Date.now() };
-    state.decks.push(deck);
+const PALETTE = ['#4f46e5', '#0891b2', '#059669', '#d97706', '#dc2626', '#db2777', '#7c3aed', '#0d9488', '#65a30d'];
+export function subjectColor(name = '') {
+  if (!name) return '#64748b';
+  let h = 0;
+  for (const ch of name.toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return PALETTE[h % PALETTE.length];
+}
+
+export function newCard(courseId, front, back) {
+  return { id: uid(), courseId, front, back, ease: 2.5, interval: 0, reps: 0, lapses: 0, due: Date.now(), lastReview: 0, createdAt: Date.now() };
+}
+
+export function createCourse({ title, subject = '', content = '', attachments = [], packId }) {
+  const c = { id: uid(), title: title?.trim() || 'Nouveau cours', subject: subject.trim(), content, attachments, createdAt: Date.now(), updatedAt: Date.now() };
+  if (packId) c.packId = packId;
+  state.courses.push(c);
+  save();
+  return c;
+}
+
+/** Remplace (ou ajoute) les flashcards et le quiz d'un cours */
+export function setCourseStudy(courseId, { flashcards = [], quiz = [] }, { replace = true } = {}) {
+  if (replace) {
+    state.cards = state.cards.filter((c) => c.courseId !== courseId);
+    state.questions = state.questions.filter((q) => q.courseId !== courseId);
   }
-  return deck;
+  flashcards.forEach((f) => state.cards.push(newCard(courseId, f.front, f.back)));
+  quiz.forEach((q) => state.questions.push({ ...q, id: uid(), courseId }));
+  save();
+}
+
+export function deleteCourse(id) {
+  state.courses = state.courses.filter((c) => c.id !== id);
+  state.cards = state.cards.filter((c) => c.courseId !== id);
+  state.questions = state.questions.filter((q) => q.courseId !== id);
+  save();
 }
 
 export function logReview() {
   const k = dayKey();
   state.reviewLog[k] = (state.reviewLog[k] || 0) + 1;
 }
-
 export function streak() {
   let n = 0;
   const d = new Date();
@@ -161,10 +198,4 @@ export function streak() {
     d.setDate(d.getDate() - 1);
   }
   return n;
-}
-
-export const SUBJECT_COLORS = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#14b8a6', '#64748b'];
-
-export function newCard(deckId, front, back, extra = {}) {
-  return { id: uid(), deckId, front, back, ease: 2.5, interval: 0, reps: 0, lapses: 0, due: Date.now(), createdAt: Date.now(), lastReview: 0, ...extra };
 }

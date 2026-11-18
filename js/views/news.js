@@ -133,7 +133,7 @@ export default function newsView(el, { query }, { updateBadge }) {
       if (e.target.closest('[data-note]')) {
         let note = state.courses.find((c) => c.title === NOTE_TITLE);
         if (!note) {
-          note = { id: uid(), title: NOTE_TITLE, subjectId: null, tags: ['veille'], attachments: [], createdAt: Date.now(), updatedAt: Date.now(), content: `# ${NOTE_TITLE}\n\nArticles mis de côté depuis l'onglet Veille.\n\n` };
+          note = { id: uid(), title: NOTE_TITLE, subject: 'Veille', attachments: [], createdAt: Date.now(), updatedAt: Date.now(), content: `Articles mis de côté depuis l'onglet Veille.\n\n` };
           state.courses.push(note);
         }
         note.content += `- [${item.title.replace(/[[\]]/g, '')}](${item.url}) — *${srcOf(item.sourceId).name}, ${new Date(item.date).toLocaleDateString('fr-FR')}*\n`;

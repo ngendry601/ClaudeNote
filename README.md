@@ -4,19 +4,38 @@ Une appli pour **stocker tous tes cours**, **réviser avec des flashcards** (ré
 
 Web app installable (PWA), sans dépendance, qui fonctionne hors-ligne. Tes données restent **dans ton navigateur** (IndexedDB).
 
-## 🧭 Comment ça marche (5 onglets)
+## 🧭 Les 5 onglets
 
 | Onglet | À quoi il sert |
 |---|---|
-| **Accueil** | Un gros bouton « Réviser », tes cours récents, tes examens (J-n), les alertes de veille |
-| **Cours** | Tous tes cours en vignettes A4. **+ Ajouter un cours** : photos, coller une réponse de Claude, écrire, ou un cours prêt (CEJM) |
-| **Réviser** | Les flashcards et le quiz, pour tout ou cours par cours |
+| **Accueil** | Les flashcards à revoir aujourd'hui, un quiz conseillé, tes examens (J-n), les alertes de veille. ⚙️ = réglages |
+| **Cours** | Le **cours complet**, tel quel (pas résumé) : sommaire, tableaux, photos d'origine. ➕ pour ajouter un cours |
+| **Flashcards** | Le cours **synthétisé** : une notion par carte, avec tableaux et schémas. Révision espacée ou simple lecture |
+| **Quiz** | QCM, cas pratiques, vrai/faux, association, remise en ordre, texte à trous, avec une explication après chaque réponse |
 | **Veille** | Failles / mises à jour de sécurité et actu IA |
-| **Réglages** | Pomodoro, matières, notifications, clé API, sauvegarde |
 
-**Un cours = une fiche A4**, comme un PDF de révision : titre, bandeaux numérotés colorés, colonnes, l'essentiel surligné, encadrés « Piège ».
-Chaque partie du cours (3 à 5) devient automatiquement **une flashcard** : pas de paquet à gérer, les cartes suivent le texte du cours.
-En révision, la réponse s'affiche **sur une page A4 qui tient entière dans l'écran** (🔍 pour agrandir, ou zoom à deux doigts).
+### Ajouter un cours
+- **📸 Photos ou PDF** : Claude recopie le cours en entier, crée les flashcards et le quiz (clé API Claude, payant à l'usage).
+- **💬 Via l'appli Claude** (gratuit) : copier les instructions, les coller dans Claude avec les photos, recoller la réponse.
+- **✍️ Écrire ou coller le texte**, puis « ✨ Créer les flashcards et le quiz ».
+- **📦 CEJM — BTS SIO** : cours complet, 22 flashcards et 40 questions, installé au premier lancement.
+
+### Schémas dans les flashcards et les cours
+````
+```flux
+Faits -> Problème de droit -> Règle -> Solution
+```
+```arbre
+Validité du contrat
+  Consentement
+  Capacité
+```
+```matrice
+**Forces** : interne + | **Faiblesses** : interne −
+**Opportunités** : externe + | **Menaces** : externe −
+```
+> ⚠️ **Piège :** …   > 💡 **Exemple :** …   > 📌 À retenir
+````
 
 ## 📱 L'installer sur ton téléphone
 
@@ -38,40 +57,14 @@ Ensuite, sur le téléphone :
 
 ## 💻 Lancer l'appli sur ton ordinateur
 
-## ✨ Fonctionnalités
+```bash
+node server.js
+# puis ouvre http://localhost:8080
+```
 
-### 📖 Cours
-- Organisation par **matières** (avec couleurs)
-- Éditeur **Markdown** avec aperçu en direct (côte à côte, écriture seule ou lecture seule) : titres, listes, tableaux, code, citations, surlignage `==texte==`, tâches `- [ ]`
-- **Pièces jointes** (PDF, images, slides…) stockées en local
-- Enregistrement automatique, export `.md`, raccourcis `Ctrl+S`, `Ctrl+B` et `Ctrl+I`
+`server.js` (Node 18+, aucune dépendance) sert l'appli et relaie les flux RSS de la veille.
 
-### ⚡ Flashcards = fiches de révision (3 à 5 par cours)
-- Chaque flashcard est une **fiche à réciter**, comme une fiche papier : bandeau coloré, sous-parties en couleur, **notions en gras**, l'essentiel ==surligné==, encadré **⚠️ Piège**
-- Recto : la liste des sous-parties à réciter · verso : la fiche complète · répétition espacée (À revoir / Difficile / Bien / Facile)
-- **Paquet CEJM BTS SIO SLAM** : 5 fiches (méthodes, économie, droit, management, pièges et auteurs), installé au premier lancement
-- Format d'une fiche dans un cours :
-  ```
-  ::: Droit
-  ### Contrat
-  - **Validité (1128)** : ==consentement, capacité, contenu licite et certain==
-  - **Nullité** : défaut de formation → le contrat n'a jamais existé
-  !! Nullité (formation) ≠ résolution (exécution)
-  :::
-  ```
-- Les formats courts restent possibles (`question :: réponse`)
-
-### 📸 Nouveau cours depuis des photos
-Cours → **📸 Depuis mes photos** : Claude lit tes photos (ou un PDF) et crée le cours + 3 à 5 fiches dans ce format.
-- **Automatique** : avec une clé API Claude (Réglages → Génération par IA). Payant à l'usage, quelques centimes par cours. La clé reste sur l'appareil.
-- **Via l'appli Claude** (gratuit avec ton compte) : copie les instructions, colle-les dans Claude avec tes photos, puis colle la réponse dans l'appli.
-
-### ❓ Quiz
-- **Une question par notion en gras** de tes fiches (82 questions pour la CEJM)
-- **QCM** (avec des réponses pièges tirées du même thème), **vrai / faux**, **réponse écrite** (tolère les fautes de frappe et les accents), ou un mélange des trois
-- Par paquet, par thème (Droit, Économie…) ou sur **tes erreurs**
-- Correction détaillée après chaque question, historique des scores
-- Les questions ratées repassent automatiquement en révision
+## ✨ Détails
 
 ### 🛡️🤖 Veille sécurité & IA
 - Centrée sur **les failles et mises à jour de sécurité** et sur **l'actu IA** ; tout le reste est filtré
@@ -81,35 +74,19 @@ Cours → **📸 Depuis mes photos** : Claude lit tes photos (ou un PDF) et cré
 - Onglets 🛡️ Failles & MAJ · 🤖 IA · 🔔 Alertes · ★ Favoris
 - **Notification** pour chaque alerte CERT-FR et pour chaque actu contenant un de tes mots-clés (critique, zero-day, Windows, OpenAI…)
 
-### 🎁 Fonctionnalités en plus
-- **Tableau de bord** : cartes à réviser, série de jours, objectif quotidien, carte d'activité façon GitHub
-- **Compte à rebours des examens** (J-12…)
-- **Pomodoro** intégré, lié au cours que tu travailles, avec notification de fin
-- **Recherche globale** (touche `/`) dans les cours, cartes et actus
-- **Thème clair/sombre**, interface responsive (PC et mobile)
-- **Sauvegarde/restauration** en JSON, pièces jointes incluses
-
 ## 🗂 Structure
 
 ```
-index.html          page unique
-css/style.css       styles (clair/sombre, responsive)
-js/app.js           routeur et navigation
-js/store.js         état et persistance (IndexedDB)
-js/srs.js           répétition espacée et extraction de flashcards
-js/cardview.js      rendu des cartes « fiche de révision »
-js/packs.js         paquets prêts à l'emploi (data/cejm.md)
-js/ai.js            création d'un cours depuis des photos (API Claude)
-js/sources.js       sources de veille et filtre sécurité / IA
-js/push.js          abonnement aux notifications push
-js/md.js            moteur Markdown sécurisé
-js/news.js          récupération HN / DEV / RSS et alertes
-js/timer.js         Pomodoro
-js/views/*.js       écrans
-sw.js               service worker (hors-ligne et clic sur les notifications)
-server.js           serveur local et relais RSS
-scripts/veille.mjs  robot GitHub Actions : flux de veille et notifications push
-.github/workflows/  publication sur GitHub Pages toutes les 30 min
+index.html, css/style.css      interface
+js/store.js                    données (cours, flashcards, questions) et reprise des anciennes versions
+js/md.js                       mise en forme : tableaux, schémas (flux, arbre, matrice), encadrés
+js/ai.js                       Claude : cours complet + flashcards + quiz (sortie JSON structurée)
+js/srs.js                      répétition espacée
+js/packs.js, data/cejm.json    cours prêt à l'emploi (source : scripts/packs/cejm.py)
+js/views/                      accueil, cours, flashcards, quiz, veille, réglages
+js/news.js, js/sources.js      veille sécurité + IA
+sw.js, manifest.webmanifest    appli installable, hors ligne, notifications
+scripts/veille.mjs             robot GitHub Actions (flux + notifications push)
 ```
 
 ## ⚠️ À savoir

@@ -1,42 +1,26 @@
-// Paquets prêts à l'emploi (cours + flashcards générées)
-import { state, save, uid } from './store.js';
-import { syncCourseCards } from './library.js';
+// Cours prêts à l'emploi : cours complet + flashcards + quiz, rédigés à la main (data/*.json)
+import { state, save, createCourse, setCourseStudy } from './store.js';
+import { normalizeStudy } from './ai.js';
 
-export const PACKS = [
-  {
-    id: 'cejm',
-    version: 2,
-    title: 'CEJM — BTS SIO SLAM',
-    desc: '5 fiches à réciter : méthodes, économie, droit, management, pièges et auteurs.',
-    url: 'data/cejm.md',
-    subject: { name: 'CEJM', color: '#b91c1c' },
-  },
-];
+export const PACKS = [{ id: 'cejm', version: 4, url: 'data/cejm.json', title: 'CEJM — BTS SIO', desc: 'Cours complet, flashcards et quiz' }];
 
-export const packInstalled = (id) => state.courses.some((c) => c.packId === id);
+export const packCourse = (id) => state.courses.find((c) => c.packId === id);
+export const outdatedPacks = () => PACKS.filter((p) => !packCourse(p.id) ? false : (state.packVersions[p.id] || 0) < p.version);
 
-/** Paquets installés dont une nouvelle version existe */
-export const outdatedPacks = () => PACKS.filter((p) => packInstalled(p.id) && (state.packVersions[p.id] || 1) < p.version);
-
-/** Importe ou synchronise un paquet : les cartes du paquet qui n'existent plus sont retirées. Retourne { added, updated, removed }. */
 export async function importPack(id) {
   const p = PACKS.find((x) => x.id === id);
-  const txt = await (await fetch(p.url, { cache: 'no-cache' })).text();
-  let subject = state.subjects.find((s) => s.name === p.subject.name);
-  if (!subject) {
-    subject = { id: uid(), ...p.subject, createdAt: Date.now() };
-    state.subjects.push(subject);
+  const data = normalizeStudy(await (await fetch(p.url, { cache: 'no-cache' })).json());
+  let course = packCourse(id);
+  if (course) Object.assign(course, { title: data.title, subject: data.subject, content: data.course, updatedAt: Date.now() });
+  else course = createCourse({ title: data.title, subject: data.subject, content: data.course, packId: id });
+  // on garde la progression des cartes qui existaient déjà (même question)
+  const before = new Map(state.cards.filter((c) => c.courseId === course.id).map((c) => [c.front, c]));
+  setCourseStudy(course.id, data);
+  for (const c of state.cards.filter((x) => x.courseId === course.id)) {
+    const old = before.get(c.front);
+    if (old) Object.assign(c, { ease: old.ease, interval: old.interval, reps: old.reps, lapses: old.lapses, due: old.due, lastReview: old.lastReview });
   }
-  let course = state.courses.find((c) => c.packId === id);
-  if (!course) {
-    course = { id: uid(), packId: id, title: p.title, subjectId: subject.id, tags: [], attachments: [], createdAt: Date.now() };
-    state.courses.push(course);
-  }
-  course.content = txt;
-  course.updatedAt = Date.now();
-  course.title = p.title;
-  const r = syncCourseCards(course);
   state.packVersions[id] = p.version;
   save();
-  return { added: r.added, updated: r.total - r.added, removed: r.removed, courseId: course.id };
+  return course;
 }
