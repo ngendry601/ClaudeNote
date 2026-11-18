@@ -1,5 +1,5 @@
 // Service worker : hors-ligne (réseau d'abord, cache en secours), notifications push et clic sur notification
-const CACHE = 'claudenote-v9';
+const CACHE = 'claudenote-v10';
 const SHELL = [
   './', 'index.html', 'css/style.css', 'icon.svg', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png',
@@ -23,8 +23,11 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
+  // « no-cache » : le navigateur redemande toujours au serveur si le fichier a changé (réponse 304 sinon).
+  // Sans ça, GitHub Pages laisse les fichiers 10 min en cache et une mise à jour peut mélanger
+  // anciens et nouveaux fichiers, ce qui empêche l'appli de démarrer.
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request.url, { cache: 'no-cache', credentials: 'same-origin' })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();

@@ -29,5 +29,22 @@
     <div id="toast-root"></div>
     <noscript>ClaudeNote a besoin de JavaScript.</noscript>
     <script type="module" src="js/app.js"></script>
+    <script>
+      // Si l'appli n'a pas démarré (mise à jour incomplète, vieux fichiers en cache…), on propose de la réparer.
+      // Les cours et la progression sont dans IndexedDB : ils ne sont pas touchés.
+      async function repairApp() {
+        try {
+          if (navigator.serviceWorker) for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+          if (window.caches) for (const k of await caches.keys()) await caches.delete(k);
+        } catch (e) {}
+        location.replace(location.pathname + '?v=' + Date.now() + location.hash);
+      }
+      setTimeout(function () {
+        if (window.__claudenoteStarted) return;
+        document.getElementById('view').innerHTML =
+          '<div class="empty"><h3>L\'appli n\'a pas pu démarrer</h3><p>Souvent à cause d\'une mise à jour incomplète. Tes cours sont conservés.</p>' +
+          '<button class="btn primary lg" onclick="repairApp()">🔧 Réparer l\'appli</button></div>';
+      }, 6000);
+    </script>
   </body>
 </html>

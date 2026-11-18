@@ -79,6 +79,7 @@ function render() {
 }
 
 async function init() {
+  window.__claudenoteStarted = true;
   const firstRun = await load();
   applyTheme();
   for (const p of newPacks()) {
@@ -97,7 +98,17 @@ async function init() {
   updateBadge();
   startAutoRefresh();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW', e));
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloading) return; // première installation : rien à recharger
+      reloading = true;
+      location.reload();
+    });
+    navigator.serviceWorker
+      .register('sw.js', { updateViaCache: 'none' })
+      .then((reg) => document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && reg.update().catch(() => {})))
+      .catch((e) => console.warn('SW', e));
     navigator.serviceWorker.addEventListener('message', (e) => e.data?.hash && (location.hash = e.data.hash));
   }
 }
