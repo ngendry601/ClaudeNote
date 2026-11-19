@@ -115,4 +115,4 @@ Tests manuels avec Playwright, profil `devices['iPhone 13']`, `serviceWorkers: '
 
 - Le site publié = la **branche par défaut** du dépôt `ngendry601/ClaudeNote`. Un push dessus redéploie en ~1 min.
 - Messages de commit en français.
-- Si l'utilisateur dit que « ça n'a pas marché » après une mise à jour : souvent le cache du téléphone → fermer/rouvrir l'appli, sinon bouton « Réparer l'appli » (Réglages ou écran de secours). Les cours sont conservés.
+- Si l'utilisateur dit que « ça n'a pas marché » après une mise à jour : souvent le cache du téléphone → fermer/rouvrir l'appli, sinon l’écran de secours « Réparer l’appli » apparaît si elle ne démarre pas. Les cours sont conservés.
