@@ -44,25 +44,31 @@ COURSE = r"""
 
 L'**OWASP** (Open Worldwide Application Security Project) publie la liste des 10 risques les plus critiques pour les applications web.
 
-### Le classement 2021 (celui des annales)
+### Le classement en vigueur : OWASP Top 10:2025
+
+Publié fin 2025, c'est la référence actuelle (remplace la version 2021).
 
 | Rang | Risque | En clair | Parade principale |
 |---|---|---|---|
-| **A01** | Contrôle d'accès défaillant | accéder à des données ou fonctions non autorisées | vérifier les droits **côté serveur** à chaque requête |
-| **A02** | Défaillances cryptographiques | données sensibles en clair, algorithmes faibles | HTTPS, hachage adapté, chiffrement des données sensibles |
-| **A03** | Injection (SQL, commandes, XSS) | des données sont interprétées comme du code | requêtes préparées, échappement, validation |
-| **A04** | Conception non sécurisée | faille dans la logique même de l'application | analyse de risques, sécurité dès la conception |
-| **A05** | Mauvaise configuration de sécurité | mode debug, comptes par défaut, messages d'erreur détaillés | durcissement, configuration revue |
-| **A06** | Composants vulnérables et obsolètes | bibliothèques non mises à jour | inventaire, mises à jour, audit des dépendances |
-| **A07** | Défaillances d'identification et d'authentification | mots de passe faibles, force brute, sessions mal gérées | MFA, limitation des tentatives, gestion des sessions |
-| **A08** | Manque d'intégrité des données et du logiciel | mises à jour ou données non vérifiées | signatures, vérification d'intégrité |
-| **A09** | Carences de journalisation et de surveillance | attaques non détectées | journaliser les événements de sécurité, alertes |
-| **A10** | Falsification de requête côté serveur (SSRF) | le serveur appelle une URL choisie par l'attaquant | liste blanche des destinations |
+| **A01** | Contrôle d'accès défaillant (inclut la SSRF) | accéder à des données ou fonctions non autorisées ; faire appeler au serveur une URL choisie par l'attaquant | vérifier les droits **côté serveur** à chaque requête, liste blanche des destinations |
+| **A02** | Mauvaise configuration de sécurité | mode debug, comptes par défaut, messages d'erreur détaillés, en-têtes manquants | durcissement, configuration revue et automatisée |
+| **A03** | Défaillances de la chaîne d'approvisionnement logicielle | bibliothèque vulnérable ou piégée, outil de build compromis | inventaire des dépendances, mises à jour, `composer audit` / `npm audit`, sources de confiance |
+| **A04** | Défaillances cryptographiques | données sensibles en clair, algorithmes faibles (MD5, SHA-1) | HTTPS, bcrypt / Argon2, chiffrement des données sensibles |
+| **A05** | Injection (SQL, commandes, XSS) | des données sont interprétées comme du code | requêtes préparées, échappement des sorties, validation |
+| **A06** | Conception non sécurisée | faille dans la logique même de l'application | analyse de risques, sécurité dès la conception |
+| **A07** | Défaillances d'authentification | mots de passe faibles, force brute, sessions mal gérées | MFA, limitation des tentatives, gestion des sessions |
+| **A08** | Défaillances d'intégrité des logiciels ou des données | mises à jour ou données non vérifiées | signatures, vérification d'intégrité |
+| **A09** | Défaillances de journalisation et d'alerte | attaques non détectées ou détectées trop tard | journaliser les événements de sécurité, alertes |
+| **A10** | Mauvaise gestion des conditions exceptionnelles | erreur qui révèle des informations ou qui laisse passer (« échec ouvert ») | gérer toutes les erreurs, message générique, refuser par défaut |
 
-### Ce qui change dans la version 2025
-- **A01 Contrôle d'accès défaillant** reste n°1 et **absorbe la SSRF**.
-- La **mauvaise configuration** monte à la 2ᵉ place.
-- Deux nouvelles catégories : **défaillances de la chaîne d'approvisionnement logicielle** (dépendances, outils de build) et **mauvaise gestion des conditions exceptionnelles** (erreurs qui révèlent des informations ou laissent passer).
+### Ce qui a changé par rapport à 2021
+- **A01** reste n°1 et **absorbe la SSRF** (ancienne A10).
+- La **mauvaise configuration** monte de la 5ᵉ à la **2ᵉ place**.
+- **Nouvelle A03** : la chaîne d'approvisionnement élargit les anciens « composants vulnérables et obsolètes » (ex-A06).
+- La **cryptographie** descend en A04, l'**injection** en A05, la **conception non sécurisée** en A06.
+- **Nouvelle A10** : mauvaise gestion des conditions exceptionnelles (erreurs, exceptions, cas limites).
+
+> ⚠️ Les annales jusqu'en 2025 citent la version **2021** (A03 = injection, A06 = composants vulnérables…). Si le sujet donne un numéro, utilise celui du sujet ; sinon cite le **nom** de la catégorie, qui ne dépend pas de la version.
 
 > 📌 À l'examen, cite la catégorie OWASP **et** explique la faille concrète dans le code du sujet.
 
@@ -291,22 +297,25 @@ Menace (attaquant) -> exploite une Vulnérabilité (faille) -> Risque (impact)
 > 📌 Principes : **moindre privilège**, **défense en profondeur**, ne jamais faire confiance au client.
 """)
 
-card("Quel est le classement OWASP Top 10 (2021) ?", r"""
-| | Risque |
-|---|---|
-| A01 | ==Contrôle d'accès défaillant== |
-| A02 | Défaillances cryptographiques |
-| A03 | Injection (SQL, XSS…) |
-| A04 | Conception non sécurisée |
-| A05 | Mauvaise configuration |
-| A06 | Composants vulnérables |
-| A07 | Défaillances d'authentification |
-| A08 | Intégrité des données et du logiciel |
-| A09 | Journalisation et surveillance |
-| A10 | SSRF |
+card("Quel est le classement OWASP Top 10 (2025) ?", r"""
+| | Risque 2025 | 2021 |
+|---|---|---|
+| A01 | ==Contrôle d'accès défaillant== (+ SSRF) | A01 |
+| A02 | Mauvaise configuration | A05 |
+| A03 | ==Chaîne d'approvisionnement== | 🆕 |
+| A04 | Défaillances cryptographiques | A02 |
+| A05 | Injection (SQL, XSS…) | A03 |
+| A06 | Conception non sécurisée | A04 |
+| A07 | Défaillances d'authentification | A07 |
+| A08 | Intégrité des logiciels / données | A08 |
+| A09 | Journalisation et alerte | A09 |
+| A10 | ==Gestion des erreurs== | 🆕 |
 
-> 💡 **2025 :** A01 reste n°1 (absorbe la SSRF) ; nouveautés : chaîne d'approvisionnement, gestion des erreurs.
+> 🆕 = nouveau. A03 élargit les « composants vulnérables » (ex-A06).
+
+> ⚠️ **Annales :** numéros de 2021 (A03 = injection). Cite surtout le **nom**.
 """)
+
 
 card("Injection SQL : comment la repérer et la corriger ?", r"""
 ==Une donnée saisie est concaténée dans la requête.==
@@ -523,7 +532,7 @@ def add(**q):
 add(type="qcm", context="Code PHP : `$sql = \"SELECT * FROM utilisateur WHERE login = '\" . $_POST['login'] . \"'\";`",
     q="Quelle vulnérabilité présente cette ligne ?",
     choices=["Une faille XSS", "Une injection SQL", "Une faille CSRF", "Une SSRF"], answer=1,
-    explain="La saisie est concaténée dans la requête : avec ' OR '1'='1' -- la condition devient toujours vraie. C'est une injection SQL (A03 de l'OWASP 2021).")
+    explain="La saisie est concaténée dans la requête : avec ' OR '1'='1' -- la condition devient toujours vraie. C'est une injection SQL (A05 de l'OWASP 2025, A03 en 2021).")
 add(type="qcm", q="Quelle est la meilleure correction d'une injection SQL ?",
     choices=["Supprimer les apostrophes de la saisie", "Utiliser une requête préparée avec des paramètres", "Masquer les messages d'erreur", "Passer le site en HTTPS"], answer=1,
     explain="La requête préparée sépare le code SQL des données : la saisie n'est jamais interprétée comme du SQL. Filtrer les caractères est contournable.")
@@ -533,7 +542,7 @@ add(type="qcm", context="Code PHP : `echo \"Bonjour \" . $_GET['nom'];`",
     explain="La donnée est réaffichée sans échappement : on peut injecter du JavaScript. htmlspecialchars() transforme < et > en texte inoffensif.")
 add(type="qcm", context="Un client remplace `facture.php?id=1042` par `facture.php?id=1043` et voit la facture d'un autre client.",
     q="Quelle catégorie OWASP est en cause ?",
-    choices=["A01 — Contrôle d'accès défaillant", "A02 — Défaillances cryptographiques", "A03 — Injection", "A06 — Composants vulnérables"], answer=0,
+    choices=["A01 — Contrôle d'accès défaillant", "A02 — Défaillances cryptographiques", "A05 — Injection", "A03 — Chaîne d'approvisionnement logicielle"], answer=0,
     explain="Le serveur ne vérifie pas que la facture appartient au client connecté (IDOR). Il faut contrôler les droits côté serveur à chaque requête.")
 add(type="qcm", context="Code PHP : `if (md5($saisie) == $utilisateur['mdp']) { ... }`",
     q="Quel est le problème principal ?",
@@ -611,11 +620,18 @@ add(type="assoc", q="Associe chaque faille à sa parade principale.", pairs=[
 add(type="qcm", q="Quel risque est n°1 de l'OWASP Top 10, en 2021 comme en 2025 ?",
     choices=["Injection", "Contrôle d'accès défaillant", "Mauvaise configuration", "Défaillances cryptographiques"], answer=1,
     explain="Le contrôle d'accès défaillant est en tête ; en 2025, il absorbe aussi la SSRF.")
+add(type="multi", q="Quelles catégories sont nouvelles dans l'OWASP Top 10:2025 ?",
+    choices=["Défaillances de la chaîne d'approvisionnement logicielle", "Injection", "Mauvaise gestion des conditions exceptionnelles", "Contrôle d'accès défaillant", "Falsification de requête côté serveur (SSRF)"], answers=[0, 2],
+    explain="Les deux nouveautés 2025 : la chaîne d'approvisionnement (A03) et la gestion des conditions exceptionnelles (A10). La SSRF n'est plus une catégorie à part : elle est intégrée à A01.")
+add(type="qcm", context="En cas d'erreur de connexion à l'annuaire, le code d'authentification attrape l'exception… et considère l'utilisateur comme connecté.",
+    q="Quelle catégorie de l'OWASP 2025 décrit ce défaut ?",
+    choices=["A10 — Mauvaise gestion des conditions exceptionnelles", "A02 — Mauvaise configuration", "A05 — Injection", "A09 — Journalisation et alerte"], answer=0,
+    explain="C'est un « échec ouvert » : en cas d'erreur, l'application doit refuser par défaut. Cette faute est l'objet de la nouvelle catégorie A10.")
 add(type="qcm", context="Une attaque par déni de service rend le site de réservation inaccessible pendant 3 heures.",
     q="Quel critère de sécurité est atteint ?",
     choices=["Disponibilité", "Intégrité", "Confidentialité", "Preuve"], answer=0,
     explain="Le service n'est plus accessible quand on en a besoin : c'est la disponibilité.")
-add(type="qcm", q="Que faire contre les composants vulnérables (A06) ?",
+add(type="qcm", q="Que faire contre les failles de la chaîne d'approvisionnement logicielle (A03 en 2025) ?",
     choices=["Ne jamais utiliser de bibliothèque", "Tenir un inventaire des dépendances, les mettre à jour et les auditer", "Masquer la version utilisée", "Désactiver HTTPS"], answer=1,
     explain="Les failles connues (CVE) des bibliothèques sont exploitées en priorité : composer audit ou npm audit et des mises à jour régulières les traitent.")
 add(type="vf", q="Il est acceptable d'écrire les mots de passe saisis dans les journaux pour faciliter le débogage.", answer=False,

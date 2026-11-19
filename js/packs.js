@@ -4,7 +4,7 @@ import { normalizeStudy } from './ai.js';
 
 export const PACKS = [
   { id: 'cejm', version: 4, url: 'data/cejm.json', title: 'CEJM — BTS SIO', desc: 'Cours complet, flashcards et quiz' },
-  { id: 'cyber-slam', version: 1, url: 'data/cyber-slam.json', title: 'Cybersécurité — BTS SIO SLAM', desc: 'OWASP, failles dans le code, authentification, SSO, crypto, RGPD' },
+  { id: 'cyber-slam', version: 2, url: 'data/cyber-slam.json', title: 'Cybersécurité — BTS SIO SLAM', desc: 'OWASP, failles dans le code, authentification, SSO, crypto, RGPD' },
   { id: 'cge-vrai-faux', version: 1, url: 'data/cge-vrai-faux.json', title: 'CGE — Le vrai du faux', desc: '20 références (films, jeux vidéo, livres) pour l\'essai' },
 ];
 

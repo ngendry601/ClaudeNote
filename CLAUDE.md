@@ -82,7 +82,7 @@ Case 3 | Case 4
 | id | Source | Contenu |
 |---|---|---|
 | `cejm` (v4) | `scripts/packs/cejm.py` | CEJM complet, 22 flashcards, 40 questions |
-| `cyber-slam` (v1) | `scripts/packs/cyber_slam.py` | Cybersécurité SLAM (OWASP, failles dans le code, auth, SSO, crypto, RGPD), 19 flashcards, 36 questions |
+| `cyber-slam` (v2) | `scripts/packs/cyber_slam.py` | Cybersécurité SLAM (OWASP Top 10 **2025** + correspondance 2021, failles dans le code, auth, SSO, crypto, RGPD), 19 flashcards, 38 questions |
 | `cge-vrai-faux` (v1) | `scripts/packs/cge_vrai_faux.py` | CGE « Le vrai du faux », ~20 références, 22 flashcards, 21 questions |
 
 **Ajouter un cours prêt :**

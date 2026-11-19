@@ -1,5 +1,5 @@
 // Service worker : hors-ligne (réseau d'abord, cache en secours), notifications push et clic sur notification
-const CACHE = 'claudenote-v12';
+const CACHE = 'claudenote-v13';
 const SHELL = [
   './', 'index.html', 'css/style.css', 'icon.svg', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png',
