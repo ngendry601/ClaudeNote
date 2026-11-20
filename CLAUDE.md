@@ -90,7 +90,7 @@ Case 3 | Case 4
 |---|---|---|
 | `cejm` (v4) | `scripts/packs/cejm.py` | CEJM complet, 22 flashcards, 40 questions |
 | `cyber-slam` (v2) | `scripts/packs/cyber_slam.py` | Cybersécurité SLAM (OWASP Top 10 **2025** + correspondance 2021, failles dans le code, auth, SSO, crypto, RGPD), 19 flashcards, 38 questions |
-| `anglais-sio` (v1) | `scripts/packs/anglais_sio.py` | Anglais : connecteurs logiques + vocabulaire informatique (cyber, IA, dev, réseaux, données/entreprise), faux amis, phrases utiles, 17 flashcards, 33 questions |
+| `anglais-sio` (v2) | `scripts/packs/anglais_sio.py` | Anglais : connecteurs logiques + vocabulaire informatique (cyber, IA, dev, réseaux, données/entreprise), faux amis, phrases utiles, 17 flashcards, 35 questions |
 | `cge-vrai-faux` (v1) | `scripts/packs/cge_vrai_faux.py` | CGE « Le vrai du faux », ~20 références, 22 flashcards, 21 questions |
 
 **Ajouter un cours prêt :**

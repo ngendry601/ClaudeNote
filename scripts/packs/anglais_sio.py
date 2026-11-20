@@ -55,6 +55,9 @@ En BTS SIO, l'anglais s'évalue à l'**écrit** (comprendre un document techniqu
 | **because of** / **due to** + nom | à cause de, en raison de | The delay is **due to** a bug. |
 | **since** / **as** | puisque, comme | **Since** the data is personal, GDPR applies. |
 | **thanks to** | grâce à | **Thanks to** backups, nothing was lost. |
+| **indeed** / **in fact** | en effet | The app is popular. **Indeed**, it has 10,000 users. |
+
+> ⚠️ « En effet » se dit **indeed** (ou **in fact**), jamais ~~in effect~~ (= en pratique, en vigueur). *Indeed* sert à **confirmer ou justifier** ce qu'on vient de dire.
 
 ### Conséquence
 | Anglais | Français | Exemple |
@@ -211,6 +214,7 @@ First / To begin with -> Then / Moreover -> However -> As a result -> To conclud
 | **a library** | une bibliothèque | une librairie | **a bookshop** |
 | **sensible** | raisonnable | sensible | **sensitive** (sensitive data) |
 | **to control** | maîtriser, diriger | contrôler (vérifier) | **to check** |
+| **in effect** | en pratique, en vigueur | en effet | **indeed** |
 | **a computer** | un ordinateur | — | — |
 | **to achieve** | réussir, atteindre | achever | **to finish** |
 | **to attend** | assister à | attendre | **to wait for** |
@@ -289,8 +293,9 @@ card("Connecteurs de CAUSE", r"""
 | **because of** / **due to** | à cause de | nom |
 | **since** / **as** | puisque | phrase |
 | **thanks to** | grâce à | nom |
+| **indeed** / **in fact** | ==en effet== | phrase |
 
-> 💡 *The delay is ==due to== a bug.*
+> ⚠️ **En effet** = *indeed*, jamais ~~in effect~~.
 """)
 
 card("Connecteurs de CONSÉQUENCE et de BUT", r"""
@@ -471,6 +476,10 @@ add(type="qcm", q="« We hash passwords ___ protect them. »", choices=["so that
 add(type="qcm", q="Quelle différence entre « because » et « because of » ?",
     choices=["Aucune", "because + phrase ; because of + nom", "because + nom ; because of + phrase", "because of est familier"], answer=1,
     explain="Because the server crashed (phrase) / because of the crash (nom). Même logique pour due to + nom.")
+add(type="qcm", q="Comment dit-on « en effet » en anglais ?", choices=["in effect", "indeed", "effectively", "in fact of"], answer=1,
+    explain="En effet = indeed (ou in fact). « In effect » = en pratique ; « effectively » = efficacement. Ex. : The app is popular. Indeed, it has 10,000 users.")
+add(type="trou", context="« Passwords must be hashed. ___, a stolen database would otherwise expose every account. »", q="Complète avec le connecteur qui veut dire « en effet » : ___", answers=["Indeed", "In fact"],
+    explain="Indeed justifie l'idée précédente : en effet, sinon une base volée exposerait tous les comptes.")
 add(type="assoc", q="Associe chaque connecteur à sa fonction.", pairs=[
     {"left": "Moreover", "right": "Ajouter"},
     {"left": "However", "right": "Opposer"},
