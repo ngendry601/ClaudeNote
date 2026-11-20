@@ -27,6 +27,7 @@ function defaults() {
   return {
     version: STATE_VERSION,
     courses: [],
+    folders: [], // { id, name, createdAt } — un cours y est rangé via course.folderId
     cards: [],
     questions: [],
     qstats: {}, // id de question -> { seen, wrong, last }
@@ -176,6 +177,34 @@ export function setCourseStudy(courseId, { flashcards = [], quiz = [] }, { repla
   flashcards.forEach((f) => state.cards.push(newCard(courseId, f.front, f.back)));
   quiz.forEach((q) => state.questions.push({ ...q, id: uid(), courseId }));
   save();
+}
+
+/* ---------- Dossiers ---------- */
+export const getFolder = (id) => (id ? state.folders.find((f) => f.id === id) : null);
+export const sortedFolders = () => [...state.folders].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+/** Cours rangés dans un dossier ('' = hors dossier) */
+export const coursesIn = (folderId) => state.courses.filter((c) => (getFolder(c.folderId)?.id || '') === (folderId || ''));
+
+export function createFolder(name) {
+  const f = { id: uid(), name: name.trim() || 'Nouveau dossier', createdAt: Date.now() };
+  state.folders.push(f);
+  save();
+  return f;
+}
+
+/** Supprime le dossier, pas les cours : ils sortent du dossier */
+export function deleteFolder(id) {
+  state.courses.forEach((c) => c.folderId === id && delete c.folderId);
+  state.folders = state.folders.filter((f) => f.id !== id);
+  save();
+}
+
+/** Regroupe des cours par dossier : [[nom du dossier, cours]…] ; nom '' = pas de dossier du tout */
+export function byFolder(courses) {
+  if (!state.folders.length) return [['', courses]];
+  const groups = sortedFolders().map((f) => [`📁 ${f.name}`, courses.filter((c) => c.folderId === f.id)]);
+  groups.push(['Autres cours', courses.filter((c) => !getFolder(c.folderId))]);
+  return groups.filter(([, cs]) => cs.length);
 }
 
 export function deleteCourse(id) {

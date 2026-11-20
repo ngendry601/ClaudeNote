@@ -1,5 +1,5 @@
 // Onglet « Flashcards » : le cours synthétisé, une notion par carte (tableaux, schémas), révision espacée.
-import { state, save, getCourse, cardsOf, isDue, dueCards, logReview, newCard, subjectColor, dayKey } from '../store.js';
+import { state, save, getCourse, cardsOf, isDue, dueCards, logReview, newCard, subjectColor, dayKey, byFolder } from '../store.js';
 import { esc, icon, confirmBox, openModal, toast, $ } from '../ui.js';
 import { md, inline } from '../md.js';
 import { schedule, intervalLabel, GRADES, mastery, shuffle } from '../srs.js';
@@ -24,7 +24,7 @@ export function flashcardsHome(el) {
     }
     ${
       withCards.length
-        ? `<div class="decks">${withCards
+        ? byFolder(withCards).map(([label, cs]) => `${label ? `<h2 class="group-title deck-group">${esc(label)}</h2>` : ''}<div class="decks">${cs
             .map((c) => {
               const cards = cardsOf(c.id);
               const d = cards.filter((x) => isDue(x)).length;
@@ -36,7 +36,7 @@ export function flashcardsHome(el) {
                 <div class="deck-btns"><a class="btn ${d ? 'primary' : ''}" href="#/flashcards/${c.id}/revoir${d ? '' : '?libre=1'}">${d ? 'Réviser' : 'Revoir'}</a>
                   <a class="btn ghost" href="#/flashcards/${c.id}/parcourir">Parcourir</a></div></div>`;
             })
-            .join('')}</div>`
+            .join('')}</div>`).join('')
         : `<div class="empty">${icon('cards', 44)}<h3>Pas encore de flashcards</h3><p>Ajoute un cours : Claude en tire des flashcards claires, avec tableaux et schémas.</p><a class="btn primary" href="#/cours?ajouter=1">${icon('plus')} Ajouter un cours</a></div>`
     }
     ${

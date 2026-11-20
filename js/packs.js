@@ -1,10 +1,11 @@
 // Cours prêts à l'emploi : cours complet + flashcards + quiz, rédigés à la main (data/*.json)
-import { state, save, createCourse, setCourseStudy } from './store.js';
+import { state, save, createCourse, setCourseStudy, getFolder } from './store.js';
 import { normalizeStudy } from './ai.js';
 
 export const PACKS = [
   { id: 'cejm', version: 4, url: 'data/cejm.json', title: 'CEJM — BTS SIO', desc: 'Cours complet, flashcards et quiz' },
   { id: 'cyber-slam', version: 2, url: 'data/cyber-slam.json', title: 'Cybersécurité — BTS SIO SLAM', desc: 'OWASP, failles dans le code, authentification, SSO, crypto, RGPD' },
+  { id: 'anglais-sio', version: 1, url: 'data/anglais-sio.json', title: 'Anglais — BTS SIO', desc: 'Connecteurs logiques et vocabulaire informatique (cyber, IA, dev, réseaux)' },
   { id: 'cge-vrai-faux', version: 1, url: 'data/cge-vrai-faux.json', title: 'CGE — Le vrai du faux', desc: '20 références (films, jeux vidéo, livres) pour l\'essai' },
 ];
 
@@ -19,7 +20,12 @@ export async function importPack(id) {
   const data = normalizeStudy(await (await fetch(p.url, { cache: 'no-cache' })).json());
   let course = packCourse(id);
   if (course) Object.assign(course, { title: data.title, subject: data.subject, content: data.course, updatedAt: Date.now() });
-  else course = createCourse({ title: data.title, subject: data.subject, content: data.course, packId: id });
+  else {
+    // si tous les cours prêts déjà installés sont dans le même dossier, le nouveau y va aussi
+    const homes = new Set(state.courses.filter((c) => c.packId).map((c) => getFolder(c.folderId)?.id || ''));
+    course = createCourse({ title: data.title, subject: data.subject, content: data.course, packId: id });
+    if (homes.size === 1 && [...homes][0]) course.folderId = [...homes][0];
+  }
   // on garde la progression des cartes qui existaient déjà (même question)
   const before = new Map(state.cards.filter((c) => c.courseId === course.id).map((c) => [c.front, c]));
   setCourseStudy(course.id, data);

@@ -450,3 +450,19 @@ body.immersive-mode .view { padding: 0; max-width: none; }
 .quiz-body { padding-bottom: 130px; }
 .flash-stage { padding-bottom: 130px; }
 .feedback { scroll-margin-bottom: 130px; }
+
+/* Dossiers */
+.head-btns { display: flex; gap: 8px; }
+.folder-card .folder-ic { font-size: 1.7rem; line-height: 1; }
+.ghost-card { border-style: dashed; background: transparent; font: inherit; color: var(--text); text-align: left; cursor: pointer; margin-bottom: 18px; }
+.deck-group { margin: 22px 0 10px; }
+.deck-group:first-of-type { margin-top: 6px; }
+.check-head { display: flex; justify-content: space-between; align-items: center; font-size: .85rem; font-weight: 650; color: var(--muted); margin-bottom: 8px; }
+.link-btn { background: none; border: 0; color: var(--primary); font: inherit; font-weight: 700; cursor: pointer; padding: 4px; }
+.check-list { display: flex; flex-direction: column; gap: 6px; max-height: 46vh; overflow: auto; margin-bottom: 14px; }
+.check-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); cursor: pointer; }
+.check-row input { width: 22px; height: 22px; flex-shrink: 0; accent-color: var(--primary); }
+.check-row div { display: flex; flex-direction: column; min-width: 0; }
+.check-row small { color: var(--muted); }
+.check-row:has(input:checked) { border-color: var(--primary-2); background: var(--primary-soft); }
+.choice.on { border-color: var(--primary-2); background: var(--primary-soft); }

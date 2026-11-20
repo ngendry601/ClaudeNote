@@ -45,7 +45,14 @@
 | `server.js` | serveur local de test + proxy RSS `/proxy?url=` |
 | `scripts/packs/*.py` | **sources** des cours prêts → génèrent `data/*.json` |
 
-Routes : `#/`, `#/cours`, `#/cours/:id`, `#/cours/:id/modifier`, `#/flashcards`, `#/flashcards/:id`, `#/flashcards/:id/revoir` (`:id` peut valoir `tout`, `?libre=1`), `#/flashcards/:id/parcourir`, `#/quiz`, `#/quiz/:id` (`?n=tout`, `?mode=erreurs`), `#/veille`, `#/reglages`.
+Routes : `#/`, `#/cours` (`?dossier=<id>` = contenu d'un dossier), `#/cours/:id`, `#/cours/:id/modifier`, `#/flashcards`, `#/flashcards/:id`, `#/flashcards/:id/revoir` (`:id` peut valoir `tout`, `?libre=1`), `#/flashcards/:id/parcourir`, `#/quiz`, `#/quiz/:id` (`?n=tout`, `?mode=erreurs`), `#/veille`, `#/reglages`.
+
+## Dossiers
+
+- `state.folders = [{ id, name, createdAt }]` ; un cours est rangé via `course.folderId` (un seul dossier par cours, pas de sous-dossiers).
+- Helpers dans `store.js` : `getFolder`, `sortedFolders`, `coursesIn`, `createFolder`, `deleteFolder` (les cours sont gardés), `byFolder` (regroupe les paquets dans Flashcards et Quiz).
+- Onglet Cours : bouton « 📁 Dossier » (crée un dossier, nom proposé « BTS SIO », tous les cours hors dossier cochés), menu ⋯ d'un cours → « Ranger dans un dossier ».
+- Un nouveau cours prêt va automatiquement dans le dossier des autres cours prêts s'ils sont tous dans le même.
 
 ## Format d'un cours (JSON des packs et de l'IA)
 
@@ -83,6 +90,7 @@ Case 3 | Case 4
 |---|---|---|
 | `cejm` (v4) | `scripts/packs/cejm.py` | CEJM complet, 22 flashcards, 40 questions |
 | `cyber-slam` (v2) | `scripts/packs/cyber_slam.py` | Cybersécurité SLAM (OWASP Top 10 **2025** + correspondance 2021, failles dans le code, auth, SSO, crypto, RGPD), 19 flashcards, 38 questions |
+| `anglais-sio` (v1) | `scripts/packs/anglais_sio.py` | Anglais : connecteurs logiques + vocabulaire informatique (cyber, IA, dev, réseaux, données/entreprise), faux amis, phrases utiles, 17 flashcards, 33 questions |
 | `cge-vrai-faux` (v1) | `scripts/packs/cge_vrai_faux.py` | CGE « Le vrai du faux », ~20 références, 22 flashcards, 21 questions |
 
 **Ajouter un cours prêt :**

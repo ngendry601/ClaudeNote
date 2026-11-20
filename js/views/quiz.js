@@ -1,6 +1,6 @@
 // Onglet « Quiz » : vraies questions (QCM, cas pratiques, vrai/faux, association, remise en ordre, texte à trous),
 // correction expliquée après chaque réponse, priorité aux questions ratées et jamais vues.
-import { state, save, getCourse, questionsOf, subjectColor } from '../store.js';
+import { state, save, getCourse, questionsOf, subjectColor, byFolder } from '../store.js';
 import { esc, icon, relTime, $, $$ } from '../ui.js';
 import { inline } from '../md.js';
 import { shuffle } from '../srs.js';
@@ -33,7 +33,7 @@ export function quizHome(el) {
               : ''
           }
           ${totalWrong ? `<a class="row-card warn-row" href="#/quiz/tout?mode=erreurs"><div class="rc-main"><b>🔁 Retravailler mes erreurs</b><small>${totalWrong} question${totalWrong > 1 ? 's' : ''} ratée${totalWrong > 1 ? 's' : ''} la dernière fois</small></div></a>` : ''}
-          <div class="decks">${courses
+          ${byFolder(courses).map(([label, cs]) => `${label ? `<h2 class="group-title deck-group">${esc(label)}</h2>` : ''}<div class="decks">${cs
             .map((c) => {
               const qs = questionsOf(c.id);
               const best = bestScore(c.id);
@@ -47,7 +47,7 @@ export function quizHome(el) {
                   ${qs.length > 10 ? `<a class="btn ghost" href="#/quiz/${c.id}?n=tout">Tout (${qs.length})</a>` : ''}
                   ${wrong ? `<a class="btn ghost" href="#/quiz/${c.id}?mode=erreurs">🔁 Erreurs (${wrong})</a>` : ''}</div></div>`;
             })
-            .join('')}</div>
+            .join('')}</div>`).join('')}
           <p class="muted small center">${totalQ} questions au total. Les questions ratées et jamais vues passent en priorité.</p>`
     }
     ${

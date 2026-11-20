@@ -1,5 +1,5 @@
 // Onglet « Cours » : le cours complet, tel quel (pas de synthèse ici).
-import { state, save, uid, getCourse, cardsOf, questionsOf, subjects, subjectColor, deleteCourse } from '../store.js';
+import { state, save, uid, getCourse, cardsOf, questionsOf, subjects, subjectColor, deleteCourse, getFolder, sortedFolders, coursesIn, createFolder, deleteFolder } from '../store.js';
 import { files } from '../db.js';
 import { esc, icon, relTime, confirmBox, openModal, toast, download, debounce, $, $$ } from '../ui.js';
 import { md, stripMd, outline } from '../md.js';
@@ -8,6 +8,157 @@ import { addCourseModal, studyModal } from './create.js';
 const readingTime = (c) => Math.max(1, Math.round(stripMd(c.content).split(' ').length / 200));
 const notFound = (el) => (el.innerHTML = `<div class="empty"><h3>Cours introuvable</h3><a class="btn" href="#/cours">Mes cours</a></div>`);
 
+/* ---------- Dossiers ---------- */
+const chev = () => icon('back', 18).replace('<svg', '<svg class="chev"');
+
+/** Créer un dossier, ou modifier un dossier existant (nom + cours qu'il contient) */
+export function folderModal(folder = null, onDone = () => {}) {
+  const courses = [...state.courses].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
+  // nouveau dossier : on coche par défaut tous les cours qui ne sont encore dans aucun dossier
+  const checked = (c) => (folder ? c.folderId === folder.id : !getFolder(c.folderId));
+  const suggested = state.folders.some((f) => f.name.toLowerCase() === 'bts sio') ? '' : 'BTS SIO';
+  openModal(
+    `<form class="form"><h3>${folder ? 'Modifier le dossier' : '📁 Nouveau dossier'}</h3>
+      <label class="field"><span>Nom du dossier</span><input name="name" required maxlength="60" value="${esc(folder?.name || suggested)}" placeholder="Ex : BTS SIO, Bac, Perso…"></label>
+      ${
+        courses.length
+          ? `<div class="check-head"><span>Cours à mettre dedans</span><button type="button" class="link-btn" data-all>Tout cocher</button></div>
+             <div class="check-list">${courses
+               .map((c) => {
+                 const other = getFolder(c.folderId);
+                 return `<label class="check-row"><input type="checkbox" name="c" value="${c.id}" ${checked(c) ? 'checked' : ''}>
+                   <div><b>${esc(c.title)}</b><small>${esc(c.subject || 'Sans matière')}${other && other.id !== folder?.id ? ` · actuellement dans « ${esc(other.name)} »` : ''}</small></div></label>`;
+               })
+               .join('')}</div>`
+          : ''
+      }
+      <div class="modal-actions"><span class="spacer"></span><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn primary">${folder ? 'Enregistrer' : 'Créer le dossier'}</button></div></form>`,
+    {
+      onMount: (m, close) => {
+        const boxes = () => [...m.querySelectorAll('input[name="c"]')];
+        const allBtn = $('[data-all]', m);
+        const syncAll = () => allBtn && (allBtn.textContent = boxes().every((b) => b.checked) ? 'Tout décocher' : 'Tout cocher');
+        syncAll();
+        m.addEventListener('change', syncAll);
+        if (allBtn)
+          allBtn.onclick = () => {
+            const on = !boxes().every((b) => b.checked);
+            boxes().forEach((b) => (b.checked = on));
+            syncAll();
+          };
+        $('form', m).onsubmit = (e) => {
+          e.preventDefault();
+          const name = new FormData(e.target).get('name').trim();
+          const f = folder || createFolder(name);
+          f.name = name || f.name;
+          for (const b of boxes()) {
+            const c = getCourse(b.value);
+            if (b.checked) c.folderId = f.id;
+            else if (c.folderId === f.id) delete c.folderId;
+          }
+          save();
+          close();
+          toast(folder ? 'Dossier enregistré' : `Dossier « ${f.name} » créé`, 'success');
+          onDone(f);
+        };
+      },
+    },
+  );
+}
+
+/** Ranger un cours : choisir son dossier */
+function moveCourseModal(course, onDone) {
+  openModal(
+    `<h3>Ranger « ${esc(course.title)} »</h3>
+     <div class="choice-list">
+       ${sortedFolders()
+         .map((f) => `<button class="choice ${course.folderId === f.id ? 'on' : ''}" data-f="${f.id}"><span>📁</span><div><b>${esc(f.name)}</b><small>${coursesIn(f.id).length} cours${course.folderId === f.id ? ' · ici actuellement' : ''}</small></div></button>`)
+         .join('')}
+       <button class="choice" data-f="new"><span>➕</span><div><b>Nouveau dossier…</b></div></button>
+       ${getFolder(course.folderId) ? `<button class="choice" data-f=""><span>↩️</span><div><b>Sortir du dossier</b></div></button>` : ''}
+     </div><button class="btn ghost block" data-close>Annuler</button>`,
+    {
+      onMount: (m, close) =>
+        m.addEventListener('click', (e) => {
+          const b = e.target.closest('[data-f]');
+          if (!b) return;
+          close();
+          if (b.dataset.f === 'new') {
+            // nouveau dossier avec ce cours déjà coché
+            const f = createFolder(state.folders.some((x) => x.name.toLowerCase() === 'bts sio') ? 'Nouveau dossier' : 'BTS SIO');
+            course.folderId = f.id;
+            save();
+            return folderModal(f, onDone);
+          }
+          if (b.dataset.f) course.folderId = b.dataset.f;
+          else delete course.folderId;
+          save();
+          toast(b.dataset.f ? `Rangé dans « ${getFolder(b.dataset.f).name} »` : 'Sorti du dossier', 'success');
+          onDone();
+        }),
+    },
+  );
+}
+
+const courseRows = (cs) => {
+  const groups = new Map();
+  cs.forEach((c) => groups.set(c.subject || 'Sans matière', [...(groups.get(c.subject || 'Sans matière') || []), c]));
+  return [...groups]
+    .map(
+      ([sub, list]) => `<section class="group"><h2 class="group-title"><span class="dot" style="background:${subjectColor(sub === 'Sans matière' ? '' : sub)}"></span>${esc(sub)}</h2>
+      ${list
+        .map(
+          (c) => `<a class="row-card" href="#/cours/${c.id}" style="--c:${subjectColor(c.subject)}">
+            <div class="rc-main"><b>${esc(c.title)}</b><small>${readingTime(c)} min de lecture · modifié ${relTime(c.updatedAt)}</small></div>
+            <div class="rc-tags">${cardsOf(c.id).length ? `<span class="pill">🃏 ${cardsOf(c.id).length}</span>` : ''}${questionsOf(c.id).length ? `<span class="pill">❓ ${questionsOf(c.id).length}</span>` : ''}</div>
+            ${chev()}</a>`,
+        )
+        .join('')}</section>`,
+    )
+    .join('');
+};
+
+/** Contenu d'un dossier */
+function folderView(el, folder) {
+  const draw = () => {
+    const list = coursesIn(folder.id).sort((a, b) => b.updatedAt - a.updatedAt);
+    el.innerHTML = `
+      <div class="topline"><a href="#/cours" class="back">${icon('back', 18)} Cours</a><button class="icon-btn" data-act="fmenu" aria-label="Options du dossier">⋯</button></div>
+      <header class="page-head"><h1>📁 ${esc(folder.name)}</h1></header>
+      ${
+        list.length
+          ? courseRows(list)
+          : `<div class="empty"><h3>Dossier vide</h3><p>Choisis les cours à ranger ici.</p></div>`
+      }
+      <button class="btn block" data-act="edit">📁 Choisir les cours de ce dossier</button>`;
+  };
+  draw();
+  el.onclick = async (e) => {
+    const a = e.target.closest('[data-act]')?.dataset.act;
+    if (a === 'edit') folderModal(folder, draw);
+    if (a === 'fmenu')
+      openModal(
+        `<h3>📁 ${esc(folder.name)}</h3><div class="choice-list">
+          <button class="choice" data-m="edit"><span>✏️</span><div><b>Renommer / choisir les cours</b></div></button>
+          <button class="choice danger" data-m="del"><span>🗑️</span><div><b>Supprimer le dossier</b><small>Les cours ne sont pas supprimés</small></div></button>
+        </div><button class="btn ghost block" data-close>Fermer</button>`,
+        {
+          onMount: (m, close) =>
+            m.addEventListener('click', async (ev) => {
+              const k = ev.target.closest('[data-m]')?.dataset.m;
+              if (!k) return;
+              close();
+              if (k === 'edit') folderModal(folder, draw);
+              if (k === 'del' && (await confirmBox(`Supprimer le dossier « ${folder.name} » ?`, { danger: true, ok: 'Supprimer', detail: 'Ses cours restent dans l\'onglet Cours, hors dossier.' }))) {
+                deleteFolder(folder.id);
+                location.hash = '#/cours';
+              }
+            }),
+        },
+      );
+  };
+}
+
 /* ---------- Liste ---------- */
 export function coursesList(el, { query }) {
   let q = '';
@@ -15,6 +166,8 @@ export function coursesList(el, { query }) {
     history.replaceState(null, '', '#/cours');
     setTimeout(addCourseModal, 50);
   }
+  const folder = getFolder(query.get('dossier'));
+  if (folder) return folderView(el, folder);
   const listHtml = () => {
     const list = state.courses
       .filter((c) => !q || `${c.title} ${c.subject} ${c.content}`.toLowerCase().includes(q))
@@ -22,27 +175,31 @@ export function coursesList(el, { query }) {
     if (!state.courses.length)
       return `<div class="empty">${icon('book', 44)}<h3>Aucun cours pour l'instant</h3><p>Prends ton cours en photo : Claude le recopie et prépare tes flashcards et ton quiz.</p><button class="btn primary" data-act="add">${icon('plus')} Ajouter un cours</button></div>`;
     if (!list.length) return `<p class="empty-txt">Aucun cours ne contient « ${esc(q)} ».</p>`;
-    const groups = new Map();
-    list.forEach((c) => groups.set(c.subject || 'Sans matière', [...(groups.get(c.subject || 'Sans matière') || []), c]));
-    return [...groups]
-      .map(
-        ([sub, cs]) => `<section class="group"><h2 class="group-title"><span class="dot" style="background:${subjectColor(sub === 'Sans matière' ? '' : sub)}"></span>${esc(sub)}</h2>
-        ${cs
-          .map(
-            (c) => `<a class="row-card" href="#/cours/${c.id}" style="--c:${subjectColor(c.subject)}">
-              <div class="rc-main"><b>${esc(c.title)}</b><small>${readingTime(c)} min de lecture · modifié ${relTime(c.updatedAt)}</small></div>
-              <div class="rc-tags">${cardsOf(c.id).length ? `<span class="pill">🃏 ${cardsOf(c.id).length}</span>` : ''}${questionsOf(c.id).length ? `<span class="pill">❓ ${questionsOf(c.id).length}</span>` : ''}</div>
-              ${icon('back', 18).replace('<svg', '<svg class="chev"')}</a>`,
-          )
-          .join('')}</section>`,
-      )
-      .join('');
+    if (q) return courseRows(list);
+    const folders = sortedFolders();
+    const loose = list.filter((c) => !getFolder(c.folderId));
+    return `${
+      folders.length
+        ? `<section class="group"><h2 class="group-title">Dossiers</h2>${folders
+            .map((f) => {
+              const cs = coursesIn(f.id);
+              const nCards = cs.reduce((n, c) => n + cardsOf(c.id).length, 0);
+              return `<a class="row-card folder-card" href="#/cours?dossier=${f.id}"><span class="folder-ic">📁</span>
+                <div class="rc-main"><b>${esc(f.name)}</b><small>${cs.length} cours${nCards ? ` · ${nCards} flashcards` : ''}</small></div>${chev()}</a>`;
+            })
+            .join('')}</section>`
+        : `<button class="row-card folder-card ghost-card" data-act="folder"><span class="folder-ic">📁</span><div class="rc-main"><b>Ranger mes cours dans un dossier</b><small>Ex : tous tes cours dans « BTS SIO »</small></div></button>`
+    }${courseRows(loose)}`;
   };
   el.innerHTML = `
-    <header class="page-head"><h1>Cours</h1><button class="btn primary" data-act="add">${icon('plus')} Ajouter</button></header>
+    <header class="page-head"><h1>Cours</h1><div class="head-btns">${state.courses.length ? `<button class="btn" data-act="folder" aria-label="Nouveau dossier">📁 Dossier</button>` : ''}<button class="btn primary" data-act="add">${icon('plus')} Ajouter</button></div></header>
     ${state.courses.length ? `<label class="search">${icon('search', 18)}<input type="search" placeholder="Chercher dans mes cours…" data-q></label>` : ''}
     <div data-list>${listHtml()}</div>`;
-  el.onclick = (e) => e.target.closest('[data-act="add"]') && addCourseModal();
+  el.onclick = (e) => {
+    const a = e.target.closest('[data-act]')?.dataset.act;
+    if (a === 'add') addCourseModal();
+    if (a === 'folder') folderModal(null, () => ($('[data-list]', el).innerHTML = listHtml()));
+  };
   el.oninput = (e) => {
     if (!e.target.matches('[data-q]')) return;
     q = e.target.value.trim().toLowerCase();
@@ -62,7 +219,7 @@ export function courseView(el, { params: [id] }) {
     const nQ = questionsOf(id).length;
     const toc = outline(course.content);
     el.innerHTML = `
-      <div class="topline"><a href="#/cours" class="back">${icon('back', 18)} Cours</a><button class="icon-btn" data-act="menu" aria-label="Options">⋯</button></div>
+      <div class="topline"><a href="#/cours${getFolder(course.folderId) ? `?dossier=${course.folderId}` : ''}" class="back">${icon('back', 18)} ${getFolder(course.folderId) ? `📁 ${esc(getFolder(course.folderId).name)}` : 'Cours'}</a><button class="icon-btn" data-act="menu" aria-label="Options">⋯</button></div>
       <h1 class="doc-title">${esc(course.title)}</h1>
       <p class="doc-meta"><span class="tag" style="--c:${subjectColor(course.subject)}">${esc(course.subject || 'Sans matière')}</span> ${readingTime(course)} min de lecture</p>
       ${
@@ -107,6 +264,7 @@ export function courseView(el, { params: [id] }) {
       `<h3>${esc(course.title)}</h3>
        <div class="choice-list">
          <a class="choice" href="#/cours/${id}/modifier" data-close><span>✏️</span><div><b>Modifier le cours</b></div></a>
+         <button class="choice" data-m="folder"><span>📁</span><div><b>Ranger dans un dossier</b><small>${getFolder(course.folderId) ? `Actuellement : ${esc(getFolder(course.folderId).name)}` : 'Ex : BTS SIO'}</small></div></button>
          <button class="choice" data-m="study"><span>✨</span><div><b>${n ? 'Refaire' : 'Créer'} les flashcards et le quiz</b><small>${n ? 'Remplace les actuels' : 'Avec Claude'}</small></div></button>
          <button class="choice" data-m="attach"><span>📎</span><div><b>Joindre des photos ou un PDF</b></div></button>
          <button class="choice" data-m="export"><span>⬇️</span><div><b>Télécharger le texte</b><small>Fichier .md</small></div></button>
@@ -119,6 +277,7 @@ export function courseView(el, { params: [id] }) {
             if (!a) return;
             close();
             if (a === 'study') studyModal(id);
+            if (a === 'folder') moveCourseModal(course, draw);
             if (a === 'attach') $('[data-file]', el).click();
             if (a === 'export') download(`${course.title.replace(/[^\w\-éèàùç ]+/gi, '_')}.md`, `# ${course.title}\n\n${course.content}`, 'text/markdown');
             if (a === 'delete' && (await confirmBox(`Supprimer « ${course.title} » ?`, { danger: true, ok: 'Supprimer', detail: 'Ses flashcards et son quiz seront supprimés aussi.' }))) {
